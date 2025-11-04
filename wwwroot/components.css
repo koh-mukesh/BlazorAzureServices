@@ -124,6 +124,15 @@
     color: white;
 }
 
+.table-btn.dev-portal {
+    background: #28a745;
+    border: none;
+}
+
+.table-btn.dev-portal:hover {
+    background: #1e7e34;
+}
+
 .section-title {
     display: flex;
     justify-content: space-between;

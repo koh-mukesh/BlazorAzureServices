@@ -56,12 +56,21 @@
                                 <td>@resource.TierOrRuntime</td>
                                 @if (serviceSection.ShowExtraColumn)
                                 {
-                                    <td>@resource.ExtraColumn</td>
+                                    <td>
+                                        @if (serviceSection.Type == "apimanagement" && !string.IsNullOrEmpty(resource.ExtraColumn))
+                                        {
+                                            <button type="button" class="table-btn dev-portal" @onclick="() => NavigateToDevPortal(resource)" @onclick:stopPropagation="true">Open Portal</button>
+                                        }
+                                        else
+                                        {
+                                            @resource.ExtraColumn
+                                        }
+                                    </td>
                                 }
                                 <td><span class="table-status @resource.StatusClass">@resource.Status</span></td>
                                 <td>
                                     <div class="table-actions">
-                                        <a href="#" class="table-btn view">View</a>
+                                        <button type="button" class="table-btn view" @onclick="() => NavigateToResource(resource.Url)" @onclick:stopPropagation="true">View</button>
                                     </div>
                                 </td>
                             </tr>
@@ -344,6 +353,17 @@
         if (!string.IsNullOrEmpty(url))
         {
             await JSRuntime.InvokeVoidAsync("window.open", url, "_blank");
+        }
+    }
+
+    private async Task NavigateToDevPortal(TableResourceItem resource)
+    {
+        // For API Management services, construct the developer portal URL
+        if (!string.IsNullOrEmpty(resource.Name))
+        {
+            // Typical Azure API Management developer portal URL pattern
+            var devPortalUrl = $"https://{resource.Name}.developer.azure-api.net";
+            await JSRuntime.InvokeVoidAsync("window.open", devPortalUrl, "_blank");
         }
     }
 
