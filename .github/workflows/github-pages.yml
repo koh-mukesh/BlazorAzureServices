@@ -35,6 +35,10 @@ jobs:
     # Add .nojekyll file to tell GitHub Pages to not treat this as a Jekyll project. (Allow files and folders starting with an underscore)
     - name: Add .nojekyll file
       run: touch release/wwwroot/.nojekyll
+      
+    # Copy index.html to 404.html to handle SPA routing
+    - name: Copy index.html to 404.html for SPA routing
+      run: cp release/wwwroot/index.html release/wwwroot/404.html
 
     - name: Setup Pages
       uses: actions/configure-pages@v4
