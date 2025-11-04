@@ -91,6 +91,10 @@
     background: #9b59b6; 
 }
 
+.table-tag.dr { 
+    background: #e74c3c; 
+}
+
 .table-status {
     padding: 4px 12px;
     border-radius: 20px;
