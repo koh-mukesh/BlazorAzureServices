@@ -1,0 +1,430 @@
+@page "/my-frequent-services-table"
+@using Microsoft.AspNetCore.Components.Web
+@inject IJSRuntime JSRuntime
+
+<PageTitle>My Frequent Azure Services - Table View</PageTitle>
+
+<div class="container">
+    <div class="back-nav">
+        <a href="/azure-services" class="back-btn">← Back to All Services</a>
+        <a href="/my-frequent-services" class="back-btn" style="margin-left: 10px;">📋 List View</a>
+    </div>
+
+    <header>
+        <h1>My Frequent Azure Services - Table View</h1>
+        <p class="subtitle">Quick access to your most used Azure resources in table format</p>
+    </header>
+
+    @foreach (var serviceSection in serviceSections)
+    {
+        <div class="service-section">
+            <div class="section-title" style="cursor: pointer;" @onclick="() => ToggleSection(serviceSection.Type)">
+                <div class="section-info">
+                    <span class="section-icon">@(serviceSection.Icon)</span>
+                    @serviceSection.Name
+                    <span class="toggle-icon">@(serviceSection.IsExpanded ? "▼" : "▶")</span>
+                </div>
+                <button class="add-btn" @onclick="() => OpenAddModal(serviceSection.Type)" @onclick:stopPropagation="true">+ Add @serviceSection.AddButtonText</button>
+            </div>
+            <div class="table-container @(serviceSection.IsExpanded ? "" : "collapsed")">
+                <table class="services-table">
+                    <thead>
+                        <tr>
+                            @foreach (var header in serviceSection.TableHeaders)
+                            {
+                                <th>@header</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var resource in serviceSection.Resources)
+                        {
+                            <tr @onclick="() => NavigateToResource(resource.Url)">
+                                <td>
+                                    <div class="table-service-name">
+                                        <span class="table-service-icon">@resource.Icon</span>
+                                        @resource.Name
+                                        @if (!string.IsNullOrEmpty(resource.Tag))
+                                        {
+                                            <span class="table-tag @resource.Tag.ToLower()">@resource.Tag</span>
+                                        }
+                                    </div>
+                                </td>
+                                <td>@resource.Type</td>
+                                <td>@resource.ResourceGroup</td>
+                                <td>@resource.Location</td>
+                                <td>@resource.TierOrRuntime</td>
+                                @if (serviceSection.ShowExtraColumn)
+                                {
+                                    <td>@resource.ExtraColumn</td>
+                                }
+                                <td><span class="table-status @resource.StatusClass">@resource.Status</span></td>
+                                <td>
+                                    <div class="table-actions">
+                                        <a href="#" class="table-btn view">View</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Add Resource Modal -->
+<div class="modal @(showModal ? "show" : "")" style="display: @(showModal ? "block" : "none")">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">@modalTitle</h2>
+        </div>
+        <EditForm Model="newResource" OnValidSubmit="HandleAddResource">
+            <DataAnnotationsValidator />
+            <div class="form-group">
+                <label class="form-label">Resource Name</label>
+                <InputText class="form-control" @bind-Value="newResource.Name" required />
+                <ValidationMessage For="@(() => newResource.Name)" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Resource Group</label>
+                <InputText class="form-control" @bind-Value="newResource.ResourceGroup" required />
+                <ValidationMessage For="@(() => newResource.ResourceGroup)" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Location</label>
+                <InputSelect class="form-control" @bind-Value="newResource.Location" required>
+                    <option value="">Select Location</option>
+                    <option value="East US">East US</option>
+                    <option value="West US">West US</option>
+                    <option value="Central US">Central US</option>
+                    <option value="North Europe">North Europe</option>
+                    <option value="West Europe">West Europe</option>
+                </InputSelect>
+                <ValidationMessage For="@(() => newResource.Location)" />
+            </div>
+            @if (showRuntimeField)
+            {
+                <div class="form-group">
+                    <label class="form-label">Runtime</label>
+                    <InputSelect class="form-control" @bind-Value="newResource.Runtime">
+                        <option value="">Select Runtime</option>
+                        <option value=".NET 6">.NET 6</option>
+                        <option value=".NET 8">.NET 8</option>
+                        <option value="Node.js 18">Node.js 18</option>
+                        <option value="Python 3.9">Python 3.9</option>
+                        <option value="Java 11">Java 11</option>
+                    </InputSelect>
+                </div>
+            }
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" @onclick="CloseModal">Cancel</button>
+                <button type="submit" class="btn-primary">Add Resource</button>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private List<ServiceTableSection> serviceSections = new();
+    private bool showModal = false;
+    private bool showRuntimeField = false;
+    private string modalTitle = "";
+    private string currentServiceType = "";
+    private NewResourceModel newResource = new();
+
+    protected override void OnInitialized()
+    {
+        InitializeServiceSections();
+    }
+
+    private void InitializeServiceSections()
+    {
+        serviceSections = new List<ServiceTableSection>
+        {
+            new ServiceTableSection
+            {
+                Name = "API Management",
+                Icon = "🔌",
+                Type = "apimanagement",
+                AddButtonText = "API Management",
+                IsExpanded = true,
+                ShowExtraColumn = true,
+                TableHeaders = new List<string> { "Service Name", "Type", "Resource Group", "Location", "Tier", "Dev Portal", "Status", "Actions" },
+                Resources = new List<TableResourceItem>
+                {
+                    new TableResourceItem
+                    {
+                        Name = "api-kohler-dev2",
+                        Icon = "🔌",
+                        Type = "API Management",
+                        ResourceGroup = "GLOBAL-API-Management-DEV-rg",
+                        Location = "Central US",
+                        TierOrRuntime = "Developer Tier",
+                        ExtraColumn = "Portal Available",
+                        Status = "Online",
+                        StatusClass = "running",
+                        Tag = "dev",
+                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/GLOBAL-API-Management-DEV-rg/providers/Microsoft.ApiManagement/service/api-kohler-dev2/overview"
+                    }
+                }
+            },
+            new ServiceTableSection
+            {
+                Name = "Azure Functions",
+                Icon = "⚡",
+                Type = "functions",
+                AddButtonText = "Function App",
+                IsExpanded = false,
+                ShowExtraColumn = false,
+                TableHeaders = new List<string> { "Service Name", "Type", "Resource Group", "Location", "Runtime", "Status", "Actions" },
+                Resources = new List<TableResourceItem>
+                {
+                    new TableResourceItem
+                    {
+                        Name = "ecomm-aem-funcapp-prod",
+                        Icon = "⚡",
+                        Type = "Function App",
+                        ResourceGroup = "global-aem-prod-rg",
+                        Location = "Central US",
+                        TierOrRuntime = "Python 3.9",
+                        Status = "Running",
+                        StatusClass = "running",
+                        Tag = "prod",
+                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/global-aem-prod-rg/providers/Microsoft.Web/sites/ecomm-aem-funcapp-prod/appServices"
+                    },
+                    new TableResourceItem
+                    {
+                        Name = "ecomm-aem-funcapp-test",
+                        Icon = "⚡",
+                        Type = "Function App",
+                        ResourceGroup = "global-aem-test-rg",
+                        Location = "Central US",
+                        TierOrRuntime = "Python 3.9",
+                        Status = "Running",
+                        StatusClass = "running",
+                        Tag = "test",
+                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/global-aem-test-rg/providers/Microsoft.Web/sites/ecomm-aem-funcapp-test/appServices"
+                    }
+                }
+            },
+            new ServiceTableSection
+            {
+                Name = "Key Vault",
+                Icon = "🗝️",
+                Type = "keyvault",
+                AddButtonText = "Key Vault",
+                IsExpanded = false,
+                ShowExtraColumn = false,
+                TableHeaders = new List<string> { "Service Name", "Type", "Resource Group", "Location", "Tier", "Status", "Actions" },
+                Resources = new List<TableResourceItem>
+                {
+                    new TableResourceItem
+                    {
+                        Name = "apim-services-kv-dev",
+                        Icon = "🗝️",
+                        Type = "Key vault",
+                        ResourceGroup = "GLOBAL-API-Management-DEV-rg",
+                        Location = "Central US",
+                        TierOrRuntime = "Standard",
+                        Status = "Online",
+                        StatusClass = "running",
+                        Tag = "dev"
+                    }
+                }
+            },
+            new ServiceTableSection
+            {
+                Name = "Application Insights",
+                Icon = "📊",
+                Type = "appinsights",
+                AddButtonText = "Application Insights",
+                IsExpanded = false,
+                ShowExtraColumn = false,
+                TableHeaders = new List<string> { "Service Name", "Type", "Resource Group", "Location", "Tier", "Status", "Actions" },
+                Resources = new List<TableResourceItem>
+                {
+                    new TableResourceItem
+                    {
+                        Name = "az-amer-prod-kohlerapim-appi",
+                        Icon = "📊",
+                        Type = "App Insights",
+                        ResourceGroup = "az-amer-prod-kohlerapimmonitoring-rg",
+                        Location = "North Central US",
+                        TierOrRuntime = "App Insights",
+                        Status = "Online",
+                        StatusClass = "running",
+                        Tag = "prod"
+                    }
+                }
+            },
+            new ServiceTableSection
+            {
+                Name = "Cosmos DB",
+                Icon = "🌐",
+                Type = "cosmosdb",
+                AddButtonText = "Cosmos DB",
+                IsExpanded = false,
+                ShowExtraColumn = false,
+                TableHeaders = new List<string> { "Service Name", "Type", "Resource Group", "Location", "API", "Status", "Actions" },
+                Resources = new List<TableResourceItem>
+                {
+                    new TableResourceItem
+                    {
+                        Name = "az-amer-dev-asrfinder-cosmos",
+                        Icon = "🌐",
+                        Type = "Cosmos DB",
+                        ResourceGroup = "AMER-TEST-ASR-FINDER-rg",
+                        Location = "Central US",
+                        TierOrRuntime = "SQL API",
+                        Status = "Online",
+                        StatusClass = "running"
+                    }
+                }
+            }
+        };
+    }
+
+    private void ToggleSection(string sectionType)
+    {
+        var section = serviceSections.FirstOrDefault(s => s.Type == sectionType);
+        if (section != null)
+        {
+            section.IsExpanded = !section.IsExpanded;
+            StateHasChanged();
+        }
+    }
+
+    private void OpenAddModal(string serviceType)
+    {
+        currentServiceType = serviceType;
+        var section = serviceSections.FirstOrDefault(s => s.Type == serviceType);
+        if (section != null)
+        {
+            modalTitle = $"Add New {section.AddButtonText}";
+            showRuntimeField = serviceType == "functions" || serviceType == "appservices";
+            newResource = new NewResourceModel();
+            showModal = true;
+        }
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+        newResource = new NewResourceModel();
+    }
+
+    private void HandleAddResource()
+    {
+        var section = serviceSections.FirstOrDefault(s => s.Type == currentServiceType);
+        if (section != null)
+        {
+            var serviceConfig = GetServiceConfig(currentServiceType);
+            
+            var newResourceItem = new TableResourceItem
+            {
+                Name = newResource.Name,
+                Icon = serviceConfig.Icon,
+                Type = serviceConfig.Title,
+                ResourceGroup = newResource.ResourceGroup,
+                Location = newResource.Location,
+                TierOrRuntime = GetTierOrRuntime(currentServiceType, newResource.Runtime),
+                Status = GetDefaultStatus(currentServiceType),
+                StatusClass = "running"
+            };
+
+            section.Resources.Add(newResourceItem);
+        }
+
+        CloseModal();
+    }
+
+    private async Task NavigateToResource(string? url)
+    {
+        if (!string.IsNullOrEmpty(url))
+        {
+            await JSRuntime.InvokeVoidAsync("window.open", url, "_blank");
+        }
+    }
+
+    private ServiceConfig GetServiceConfig(string serviceType)
+    {
+        var configs = new Dictionary<string, ServiceConfig>
+        {
+            ["functions"] = new ServiceConfig { Title = "Function App", Icon = "⚡" },
+            ["appservices"] = new ServiceConfig { Title = "App Service", Icon = "🌐" },
+            ["storage"] = new ServiceConfig { Title = "Storage Account", Icon = "💾" },
+            ["cosmosdb"] = new ServiceConfig { Title = "Cosmos DB", Icon = "🌐" },
+            ["apimanagement"] = new ServiceConfig { Title = "API Management", Icon = "🔌" },
+            ["keyvault"] = new ServiceConfig { Title = "Key Vault", Icon = "🗝️" },
+            ["appinsights"] = new ServiceConfig { Title = "Application Insights", Icon = "📊" }
+        };
+
+        return configs.GetValueOrDefault(serviceType, new ServiceConfig { Title = "Service", Icon = "📋" });
+    }
+
+    private string GetTierOrRuntime(string serviceType, string runtime)
+    {
+        return serviceType switch
+        {
+            "functions" or "appservices" => string.IsNullOrEmpty(runtime) ? ".NET 6" : runtime,
+            "storage" => "Standard LRS",
+            "cosmosdb" => "SQL API",
+            "apimanagement" => "Developer Tier",
+            "keyvault" => "Standard",
+            "appinsights" => "App Insights",
+            _ => "Standard"
+        };
+    }
+
+    private string GetDefaultStatus(string serviceType)
+    {
+        return serviceType switch
+        {
+            "storage" => "Active",
+            "cosmosdb" or "apimanagement" or "appinsights" or "keyvault" => "Online",
+            _ => "Running"
+        };
+    }
+
+    public class ServiceTableSection
+    {
+        public string Name { get; set; } = "";
+        public string Icon { get; set; } = "";
+        public string Type { get; set; } = "";
+        public string AddButtonText { get; set; } = "";
+        public bool IsExpanded { get; set; } = false;
+        public bool ShowExtraColumn { get; set; } = false;
+        public List<string> TableHeaders { get; set; } = new();
+        public List<TableResourceItem> Resources { get; set; } = new();
+    }
+
+    public class TableResourceItem
+    {
+        public string Name { get; set; } = "";
+        public string Icon { get; set; } = "";
+        public string Type { get; set; } = "";
+        public string ResourceGroup { get; set; } = "";
+        public string Location { get; set; } = "";
+        public string TierOrRuntime { get; set; } = "";
+        public string ExtraColumn { get; set; } = "";
+        public string Status { get; set; } = "";
+        public string StatusClass { get; set; } = "";
+        public string? Tag { get; set; }
+        public string? Url { get; set; }
+    }
+
+    public class ServiceConfig
+    {
+        public string Title { get; set; } = "";
+        public string Icon { get; set; } = "";
+    }
+
+    public class NewResourceModel
+    {
+        public string Name { get; set; } = "";
+        public string ResourceGroup { get; set; } = "";
+        public string Location { get; set; } = "";
+        public string Runtime { get; set; } = "";
+    }
+}

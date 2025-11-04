@@ -1,0 +1,378 @@
+@page "/azure-services"
+@using Microsoft.AspNetCore.Components.Web
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Azure Services by Category</PageTitle>
+
+<div class="container">
+    <header>
+        <h1>Microsoft Azure Services</h1>
+        <p class="subtitle">Comprehensive list of Azure services organized by category</p>
+    </header>
+
+    <div class="stats">
+        <div class="stat-item">
+            <span class="stat-number" id="totalServices">@totalServices</span>
+            <span class="stat-label">Total Services</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-number" id="totalCategories">@totalCategories</span>
+            <span class="stat-label">Categories</span>
+        </div>
+    </div>
+
+    <div class="search-container">
+        <input type="text" @bind="searchTerm" @oninput="OnSearchInput" placeholder="Search for Azure services...">
+    </div>
+
+    <div id="servicesContainer">
+        @foreach (var category in filteredCategories)
+        {
+            <div class="service-category @(category.IsCollapsed ? "collapsed" : "")">
+                <div class="category-header" @onclick="() => ToggleCategory(category)">
+                    <h2 class="category-title">
+                        <div class="category-info">
+                            <span class="category-icon">@category.Icon</span>
+                            @category.Name
+                        </div>
+                        <span class="toggle-icon">@(category.IsCollapsed ? "▶" : "▼")</span>
+                    </h2>
+                </div>
+                <div class="services-content">
+                    <div class="services-grid">
+                        @foreach (var service in category.Services.Where(s => s.IsVisible))
+                        {
+                            <div class="service-item">
+                                <div class="service-name">@service.Name</div>
+                                <div class="service-description">@service.Description</div>
+                                <div class="service-actions">
+                                    @foreach (var action in service.Actions)
+                                    {
+                                        <a href="@action.Url" target="@action.Target" class="action-btn @action.CssClass">@action.Text</a>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private string searchTerm = "";
+    private List<ServiceCategory> serviceCategories = new();
+    private List<ServiceCategory> filteredCategories = new();
+    private int totalServices = 0;
+    private int totalCategories = 0;
+
+    protected override void OnInitialized()
+    {
+        InitializeServiceCategories();
+        filteredCategories = serviceCategories;
+        UpdateStats();
+    }
+
+    private void InitializeServiceCategories()
+    {
+        serviceCategories = new List<ServiceCategory>
+        {
+            new ServiceCategory
+            {
+                Name = "Compute Services",
+                Icon = "💻",
+                IsCollapsed = false,
+                Services = new List<AzureService>
+                {
+                    new AzureService
+                    {
+                        Name = "Azure Virtual Machines",
+                        Description = "On-demand, scalable computing resources with support for Linux and Windows",
+                        Actions = new List<ServiceAction>
+                        {
+                            new ServiceAction { Text = "My VMs", Url = "/my-frequent-services#virtualmachines", CssClass = "list-btn", Target = "_self" },
+                            new ServiceAction { Text = "Create", Url = "https://portal.azure.com/#create/Microsoft.VirtualMachine", CssClass = "create-btn", Target = "_blank" },
+                            new ServiceAction { Text = "Docs", Url = "https://docs.microsoft.com/en-us/azure/virtual-machines/", CssClass = "docs-btn", Target = "_blank" }
+                        }
+                    },
+                    new AzureService
+                    {
+                        Name = "Azure App Service",
+                        Description = "Fully managed platform for building, deploying, and scaling web apps",
+                        Actions = new List<ServiceAction>
+                        {
+                            new ServiceAction { Text = "My Apps", Url = "/my-frequent-services#appservices", CssClass = "list-btn", Target = "_self" },
+                            new ServiceAction { Text = "Create", Url = "https://portal.azure.com/#create/Microsoft.WebSite", CssClass = "create-btn", Target = "_blank" },
+                            new ServiceAction { Text = "Docs", Url = "https://docs.microsoft.com/en-us/azure/app-service/", CssClass = "docs-btn", Target = "_blank" }
+                        }
+                    },
+                    new AzureService
+                    {
+                        Name = "Azure Functions",
+                        Description = "Event-driven, serverless compute platform",
+                        Actions = new List<ServiceAction>
+                        {
+                            new ServiceAction { Text = "My Functions", Url = "/my-frequent-services#functions", CssClass = "list-btn", Target = "_self" },
+                            new ServiceAction { Text = "Create", Url = "https://portal.azure.com/#create/Microsoft.FunctionApp", CssClass = "create-btn", Target = "_blank" },
+                            new ServiceAction { Text = "Docs", Url = "https://docs.microsoft.com/en-us/azure/azure-functions/", CssClass = "docs-btn", Target = "_blank" }
+                        }
+                    },
+                    new AzureService
+                    {
+                        Name = "Azure Container Instances",
+                        Description = "Run Docker containers on-demand in a managed environment",
+                        Actions = new List<ServiceAction>
+                        {
+                            new ServiceAction { Text = "List Containers", Url = "https://portal.azure.com/#view/HubsExtension/BrowseResource/resourceType/Microsoft.ContainerInstance%2FcontainerGroups", CssClass = "list-btn", Target = "_blank" },
+                            new ServiceAction { Text = "Create", Url = "https://portal.azure.com/#create/Microsoft.ContainerInstances", CssClass = "create-btn", Target = "_blank" },
+                            new ServiceAction { Text = "Docs", Url = "https://docs.microsoft.com/en-us/azure/container-instances/", CssClass = "docs-btn", Target = "_blank" }
+                        }
+                    },
+                    new AzureService
+                    {
+                        Name = "Azure Kubernetes Service (AKS)",
+                        Description = "Managed Kubernetes container orchestration service",
+                        Actions = new List<ServiceAction>
+                        {
+                            new ServiceAction { Text = "List Clusters", Url = "https://portal.azure.com/#view/HubsExtension/BrowseResource/resourceType/Microsoft.ContainerService%2FmanagedClusters", CssClass = "list-btn", Target = "_blank" },
+                            new ServiceAction { Text = "Create", Url = "https://portal.azure.com/#create/microsoft.aks", CssClass = "create-btn", Target = "_blank" },
+                            new ServiceAction { Text = "Docs", Url = "https://docs.microsoft.com/en-us/azure/aks/", CssClass = "docs-btn", Target = "_blank" }
+                        }
+                    },
+                    new AzureService
+                    {
+                        Name = "Azure Batch",
+                        Description = "Cloud-scale job scheduling and compute management",
+                        Actions = new List<ServiceAction>
+                        {
+                            new ServiceAction { Text = "List Accounts", Url = "https://portal.azure.com/#view/HubsExtension/BrowseResource/resourceType/Microsoft.Batch%2FbatchAccounts", CssClass = "list-btn", Target = "_blank" },
+                            new ServiceAction { Text = "Create", Url = "https://portal.azure.com/#create/Microsoft.BatchAccount", CssClass = "create-btn", Target = "_blank" },
+                            new ServiceAction { Text = "Docs", Url = "https://docs.microsoft.com/en-us/azure/batch/", CssClass = "docs-btn", Target = "_blank" }
+                        }
+                    }
+                }
+            },
+            new ServiceCategory
+            {
+                Name = "Storage Services",
+                Icon = "💾",
+                IsCollapsed = true,
+                Services = new List<AzureService>
+                {
+                    new AzureService
+                    {
+                        Name = "Azure Storage Accounts",
+                        Description = "Scalable storage for blobs, files, queues, and tables",
+                        Actions = new List<ServiceAction>
+                        {
+                            new ServiceAction { Text = "My Storage", Url = "/my-frequent-services#storage", CssClass = "list-btn", Target = "_self" },
+                            new ServiceAction { Text = "Create", Url = "https://portal.azure.com/#create/Microsoft.StorageAccount", CssClass = "create-btn", Target = "_blank" },
+                            new ServiceAction { Text = "Docs", Url = "https://docs.microsoft.com/en-us/azure/storage/", CssClass = "docs-btn", Target = "_blank" }
+                        }
+                    },
+                    new AzureService
+                    {
+                        Name = "Azure Blob Storage",
+                        Description = "Massively scalable object storage for unstructured data",
+                        Actions = new List<ServiceAction>
+                        {
+                            new ServiceAction { Text = "Browse Blobs", Url = "https://portal.azure.com/#view/Microsoft_Azure_Storage/ContainerMenuBlade/~/overview", CssClass = "list-btn", Target = "_blank" },
+                            new ServiceAction { Text = "Create", Url = "https://portal.azure.com/#create/Microsoft.StorageAccount", CssClass = "create-btn", Target = "_blank" },
+                            new ServiceAction { Text = "Docs", Url = "https://docs.microsoft.com/en-us/azure/storage/blobs/", CssClass = "docs-btn", Target = "_blank" }
+                        }
+                    },
+                    new AzureService
+                    {
+                        Name = "Azure Files",
+                        Description = "Managed file shares in the cloud using SMB protocol",
+                        Actions = new List<ServiceAction>
+                        {
+                            new ServiceAction { Text = "Browse Files", Url = "https://portal.azure.com/#view/Microsoft_Azure_Storage/FileShareMenuBlade/~/overview", CssClass = "list-btn", Target = "_blank" },
+                            new ServiceAction { Text = "Create", Url = "https://portal.azure.com/#create/Microsoft.StorageAccount", CssClass = "create-btn", Target = "_blank" },
+                            new ServiceAction { Text = "Docs", Url = "https://docs.microsoft.com/en-us/azure/storage/files/", CssClass = "docs-btn", Target = "_blank" }
+                        }
+                    },
+                    new AzureService
+                    {
+                        Name = "Azure Managed Disks",
+                        Description = "High-performance, durable block storage for Azure VMs",
+                        Actions = new List<ServiceAction>
+                        {
+                            new ServiceAction { Text = "List Disks", Url = "https://portal.azure.com/#view/HubsExtension/BrowseResource/resourceType/Microsoft.Compute%2Fdisks", CssClass = "list-btn", Target = "_blank" },
+                            new ServiceAction { Text = "Create", Url = "https://portal.azure.com/#create/Microsoft.ManagedDisk", CssClass = "create-btn", Target = "_blank" },
+                            new ServiceAction { Text = "Docs", Url = "https://docs.microsoft.com/en-us/azure/virtual-machines/managed-disks-overview", CssClass = "docs-btn", Target = "_blank" }
+                        }
+                    }
+                }
+            },
+            new ServiceCategory
+            {
+                Name = "Database Services",
+                Icon = "🗄️",
+                IsCollapsed = true,
+                Services = new List<AzureService>
+                {
+                    new AzureService
+                    {
+                        Name = "Azure SQL Database",
+                        Description = "Fully managed relational database with auto-scale, integral intelligence, and robust security",
+                        Actions = new List<ServiceAction>
+                        {
+                            new ServiceAction { Text = "My Databases", Url = "/my-frequent-services#sqldatabases", CssClass = "list-btn", Target = "_self" },
+                            new ServiceAction { Text = "Create", Url = "https://portal.azure.com/#create/Microsoft.AzureSQL", CssClass = "create-btn", Target = "_blank" },
+                            new ServiceAction { Text = "Docs", Url = "https://docs.microsoft.com/en-us/azure/azure-sql/", CssClass = "docs-btn", Target = "_blank" }
+                        }
+                    },
+                    new AzureService
+                    {
+                        Name = "Azure Cosmos DB",
+                        Description = "Globally distributed, multi-model database service",
+                        Actions = new List<ServiceAction>
+                        {
+                            new ServiceAction { Text = "My Cosmos DB", Url = "/my-frequent-services#cosmosdb", CssClass = "list-btn", Target = "_self" },
+                            new ServiceAction { Text = "Create", Url = "https://portal.azure.com/#create/Microsoft.DocumentDB", CssClass = "create-btn", Target = "_blank" },
+                            new ServiceAction { Text = "Docs", Url = "https://docs.microsoft.com/en-us/azure/cosmos-db/", CssClass = "docs-btn", Target = "_blank" }
+                        }
+                    }
+                }
+            }
+            // Adding more categories would continue here...
+        };
+
+        // Add remaining categories
+        AddRemainingCategories();
+    }
+
+    private void AddRemainingCategories()
+    {
+        // Networking Services
+        serviceCategories.Add(new ServiceCategory
+        {
+            Name = "Networking Services",
+            Icon = "🌐",
+            IsCollapsed = true,
+            Services = new List<AzureService>
+            {
+                new AzureService
+                {
+                    Name = "Azure Virtual Network",
+                    Description = "Private network in Azure for secure communication",
+                    Actions = new List<ServiceAction>
+                    {
+                        new ServiceAction { Text = "List VNets", Url = "https://portal.azure.com/#view/HubsExtension/BrowseResource/resourceType/Microsoft.Network%2FvirtualNetworks", CssClass = "list-btn", Target = "_blank" },
+                        new ServiceAction { Text = "Create", Url = "https://portal.azure.com/#create/Microsoft.VirtualNetwork", CssClass = "create-btn", Target = "_blank" },
+                        new ServiceAction { Text = "Docs", Url = "https://docs.microsoft.com/en-us/azure/virtual-network/", CssClass = "docs-btn", Target = "_blank" }
+                    }
+                }
+            }
+        });
+
+        // AI & Machine Learning
+        serviceCategories.Add(new ServiceCategory
+        {
+            Name = "AI & Machine Learning",
+            Icon = "🤖",
+            IsCollapsed = true,
+            Services = new List<AzureService>
+            {
+                new AzureService
+                {
+                    Name = "Azure OpenAI Service",
+                    Description = "Advanced AI models including GPT-4, ChatGPT, and Codex",
+                    Actions = new List<ServiceAction>
+                    {
+                        new ServiceAction { Text = "List Instances", Url = "https://portal.azure.com/#view/HubsExtension/BrowseResource/resourceType/Microsoft.CognitiveServices%2Faccounts", CssClass = "list-btn", Target = "_blank" },
+                        new ServiceAction { Text = "Create", Url = "https://portal.azure.com/#create/Microsoft.CognitiveServicesOpenAI", CssClass = "create-btn", Target = "_blank" },
+                        new ServiceAction { Text = "Docs", Url = "https://docs.microsoft.com/en-us/azure/ai-services/openai/", CssClass = "docs-btn", Target = "_blank" }
+                    }
+                }
+            }
+        });
+
+        // Security & Identity
+        serviceCategories.Add(new ServiceCategory
+        {
+            Name = "Security & Identity",
+            Icon = "🔒",
+            IsCollapsed = true,
+            Services = new List<AzureService>
+            {
+                new AzureService
+                {
+                    Name = "Azure Key Vault",
+                    Description = "Safeguard and maintain control of keys and secrets",
+                    Actions = new List<ServiceAction>
+                    {
+                        new ServiceAction { Text = "List Vaults", Url = "https://portal.azure.com/#view/HubsExtension/BrowseResource/resourceType/Microsoft.KeyVault%2Fvaults", CssClass = "list-btn", Target = "_blank" },
+                        new ServiceAction { Text = "Create", Url = "https://portal.azure.com/#create/Microsoft.KeyVault", CssClass = "create-btn", Target = "_blank" },
+                        new ServiceAction { Text = "Docs", Url = "https://docs.microsoft.com/en-us/azure/key-vault/", CssClass = "docs-btn", Target = "_blank" }
+                    }
+                }
+            }
+        });
+    }
+
+    private void ToggleCategory(ServiceCategory category)
+    {
+        category.IsCollapsed = !category.IsCollapsed;
+    }
+
+    private void OnSearchInput(ChangeEventArgs e)
+    {
+        searchTerm = e.Value?.ToString() ?? "";
+        FilterServices();
+    }
+
+    private void FilterServices()
+    {
+        foreach (var category in serviceCategories)
+        {
+            foreach (var service in category.Services)
+            {
+                service.IsVisible = string.IsNullOrEmpty(searchTerm) ||
+                    service.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    service.Description.Contains(searchTerm, StringComparison.OrdinalIgnoreCase);
+            }
+
+            // Expand categories with visible services when searching
+            if (!string.IsNullOrEmpty(searchTerm) && category.Services.Any(s => s.IsVisible))
+            {
+                category.IsCollapsed = false;
+            }
+        }
+
+        filteredCategories = serviceCategories.Where(c => 
+            string.IsNullOrEmpty(searchTerm) || c.Services.Any(s => s.IsVisible)).ToList();
+    }
+
+    private void UpdateStats()
+    {
+        totalServices = serviceCategories.SelectMany(c => c.Services).Count();
+        totalCategories = serviceCategories.Count;
+    }
+
+    public class ServiceCategory
+    {
+        public string Name { get; set; } = "";
+        public string Icon { get; set; } = "";
+        public bool IsCollapsed { get; set; } = true;
+        public List<AzureService> Services { get; set; } = new();
+    }
+
+    public class AzureService
+    {
+        public string Name { get; set; } = "";
+        public string Description { get; set; } = "";
+        public List<ServiceAction> Actions { get; set; } = new();
+        public bool IsVisible { get; set; } = true;
+    }
+
+    public class ServiceAction
+    {
+        public string Text { get; set; } = "";
+        public string Url { get; set; } = "";
+        public string CssClass { get; set; } = "";
+        public string Target { get; set; } = "_self";
+    }
+}

@@ -1,0 +1,464 @@
+@page "/bitbucket-branching-diagram"
+
+<PageTitle>Bitbucket Branching Strategy Diagram</PageTitle>
+
+<div class="container">
+    <h1>🌿 Bitbucket Branching Strategy</h1>
+    <p class="subtitle">Git Flow Model for Team Collaboration</p>
+
+    <!-- Bitbucket Branch Flow Diagram -->
+    <div class="branch-flow-diagram">
+        <h3 style="text-align: center; margin-bottom: 30px; color: #2c3e50;">🔀 Bitbucket Branch Flow</h3>
+
+        <div class="flow-diagram-container">
+            <!-- Central Repository -->
+            <div class="central-repo-box">
+                <div class="repo-icon">📦</div>
+                <div class="repo-name">Bitbucket Repository</div>
+            </div>
+
+            <!-- Branch Boxes -->
+            <div class="branch-box dev-box">
+                <div class="branch-name">dev</div>
+                <div class="branch-desc">Development</div>
+            </div>
+
+            <div class="branch-box qa-box">
+                <div class="branch-name">qa</div>
+                <div class="branch-desc">Quality Assurance</div>
+            </div>
+
+            <div class="branch-box uat-box">
+                <div class="branch-name">uat</div>
+                <div class="branch-desc">User Acceptance</div>
+            </div>
+
+            <div class="branch-box master-box">
+                <div class="branch-name">master</div>
+                <div class="branch-desc">Production</div>
+            </div>
+
+            <!-- Feature Branches -->
+            <div class="feature-branch-box feature-box">
+                <div class="branch-name">feature/login</div>
+                <div class="branch-desc">New Feature</div>
+            </div>
+
+            <div class="feature-branch-box bugfix-box">
+                <div class="branch-name">bugfix/ui-fix</div>
+                <div class="branch-desc">Bug Fix</div>
+            </div>
+
+            <div class="feature-branch-box refactor-box">
+                <div class="branch-name">refactor/cleanup</div>
+                <div class="branch-desc">Code Refactor</div>
+            </div>
+
+            <!-- Fork Lines -->
+            <div class="fork-line fork-to-dev"></div>
+            <div class="fork-line fork-to-qa"></div>
+            <div class="fork-line fork-to-uat"></div>
+            <div class="fork-line fork-to-master"></div>
+
+            <!-- Main horizontal line -->
+            <div class="main-line"></div>
+
+            <!-- Connection lines to branches -->
+            <div class="connection-line line-to-dev"></div>
+            <div class="connection-line line-to-qa"></div>
+            <div class="connection-line line-to-uat"></div>
+            <div class="connection-line line-to-master"></div>
+
+            <!-- Feature branch connections -->
+            <div class="feature-line line-from-feature"></div>
+            <div class="feature-line line-from-bugfix"></div>
+            <div class="feature-line line-from-refactor"></div>
+
+            <!-- Arrows -->
+            <div class="arrow arrow-to-dev"></div>
+            <div class="arrow arrow-to-qa"></div>
+            <div class="arrow arrow-to-uat"></div>
+            <div class="arrow arrow-to-master"></div>
+            <div class="arrow arrow-from-feature"></div>
+            <div class="arrow arrow-from-bugfix"></div>
+            <div class="arrow arrow-from-refactor"></div>
+
+            <!-- Fork Labels -->
+            <div class="fork-label label-dev">Fork</div>
+            <div class="fork-label label-qa">Fork</div>
+            <div class="fork-label label-uat">Fork</div>
+            <div class="fork-label label-master">Fork</div>
+
+            <!-- Step Numbers -->
+            <div class="step-circle step-1">1</div>
+            <div class="step-circle step-2">2</div>
+            <div class="step-circle step-3">3</div>
+            <div class="step-circle step-4">4</div>
+            <div class="step-circle step-5">5</div>
+        </div>
+    </div>
+
+    <div class="diagram-container">
+        <h3 style="text-align: center; margin-bottom: 30px; color: #2c3e50;">Branch Flow Diagram</h3>
+
+        <!-- Master Branch -->
+        <div class="branch-row">
+            <div class="branch-label" style="color: #2ecc71;">master</div>
+            <div class="branch-line master-branch">
+                <div class="commit master" style="left: 10%;"></div>
+                <div class="commit master" style="left: 35%;"></div>
+                <div class="commit master" style="left: 75%;"></div>
+                <div class="commit master" style="left: 90%;"></div>
+            </div>
+        </div>
+
+        <!-- UAT Branch -->
+        <div class="branch-row">
+            <div class="branch-label" style="color: #e67e22;">uat</div>
+            <div class="branch-line uat-branch" style="width: 35%; margin-left: 25%;">
+                <div class="commit uat" style="left: 20%;"></div>
+                <div class="commit uat" style="left: 50%;"></div>
+                <div class="commit uat" style="left: 80%;"></div>
+            </div>
+            <div class="merge-arrow" style="left: 63%; top: -5px;">↗</div>
+        </div>
+
+        <!-- QA Branch -->
+        <div class="branch-row">
+            <div class="branch-label" style="color: #f39c12;">qa</div>
+            <div class="branch-line qa-branch" style="width: 40%; margin-left: 20%;">
+                <div class="commit qa" style="left: 15%;"></div>
+                <div class="commit qa" style="left: 45%;"></div>
+                <div class="commit qa" style="left: 75%;"></div>
+            </div>
+            <div class="merge-arrow" style="left: 63%; top: -5px;">↗</div>
+        </div>
+
+        <!-- Develop Branch -->
+        <div class="branch-row">
+            <div class="branch-label" style="color: #3498db;">develop</div>
+            <div class="branch-line develop-branch">
+                <div class="commit develop" style="left: 15%;"></div>
+                <div class="commit develop" style="left: 25%;"></div>
+                <div class="commit develop" style="left: 45%;"></div>
+                <div class="commit develop" style="left: 55%;"></div>
+                <div class="commit develop" style="left: 75%;"></div>
+                <div class="commit develop" style="left: 85%;"></div>
+            </div>
+        </div>
+
+        <!-- Feature Branches -->
+        <div class="branch-row">
+            <div class="branch-label" style="color: #9b59b6;">feature/login</div>
+            <div class="branch-line feature-branch" style="width: 25%; margin-left: 15%;">
+                <div class="commit feature" style="left: 30%;"></div>
+                <div class="commit feature" style="left: 70%;"></div>
+            </div>
+            <div class="merge-arrow" style="left: 43%; top: -5px;">↗</div>
+        </div>
+
+        <div class="branch-row">
+            <div class="branch-label" style="color: #9b59b6;">feature/payment</div>
+            <div class="branch-line feature-branch" style="width: 30%; margin-left: 45%;">
+                <div class="commit feature" style="left: 20%;"></div>
+                <div class="commit feature" style="left: 50%;"></div>
+                <div class="commit feature" style="left: 80%;"></div>
+            </div>
+            <div class="merge-arrow" style="left: 78%; top: -5px;">↗</div>
+        </div>
+
+        <!-- Bugfix Branch -->
+        <div class="branch-row">
+            <div class="branch-label" style="color: #8e44ad;">bugfix/ui-issue</div>
+            <div class="branch-line bugfix-branch" style="width: 20%; margin-left: 50%;">
+                <div class="commit bugfix" style="left: 30%;"></div>
+                <div class="commit bugfix" style="left: 70%;"></div>
+            </div>
+            <div class="merge-arrow" style="left: 73%; top: -5px;">↗</div>
+        </div>
+
+        <!-- Hotfix Branch -->
+        <div class="branch-row">
+            <div class="branch-label" style="color: #e74c3c;">hotfix/security</div>
+            <div class="branch-line hotfix-branch" style="width: 20%; margin-left: 70%;">
+                <div class="commit hotfix" style="left: 50%;"></div>
+            </div>
+            <div class="merge-arrow" style="left: 92%; top: -25px;">↖</div>
+        </div>
+    </div>
+
+    <div class="legend">
+        @foreach (var legendItem in legendItems)
+        {
+            <div class="legend-item">
+                <div class="legend-color @legendItem.CssClass"></div>
+                <div>
+                    <strong>@legendItem.Title</strong><br>
+                    @legendItem.Description
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="workflow-steps">
+        <h3>📄 Workflow Steps</h3>
+
+        @foreach (var step in workflowSteps)
+        {
+            <div class="step">
+                <div class="step-title">@step.StepNumber. @step.Title</div>
+                @step.Description
+            </div>
+        }
+    </div>
+
+    <div class="commands">
+        <h4>🛠️ Common Git Commands</h4>
+
+        @foreach (var command in gitCommands)
+        {
+            <div class="command">
+                # @command.Description<br>
+                @foreach (var cmd in command.Commands)
+                {
+                    @cmd<br>
+                }
+            </div>
+        }
+    </div>
+
+    <div class="workflow-steps">
+        <h3>📋 Bitbucket Integration</h3>
+
+        @foreach (var integration in bitbucketIntegrations)
+        {
+            <div class="step">
+                <div class="step-title">@integration.Title</div>
+                @integration.Description
+            </div>
+        }
+    </div>
+
+    <!-- Quick Reference Card -->
+    <div class="quick-reference">
+        <h3>📋 Quick Reference Card</h3>
+        <div class="reference-grid">
+            @foreach (var refCard in referenceCards)
+            {
+                <div class="reference-card @(refCard.IsEmergency ? "emergency-card" : "")">
+                    <div class="ref-icon">@refCard.Icon</div>
+                    <div class="ref-title">@refCard.Title</div>
+                    <div class="ref-branches">
+                        @foreach (var branch in refCard.Branches)
+                        {
+                            <span class="ref-branch @branch.CssClass">@branch.Name</span>
+                        }
+                    </div>
+                    <div class="ref-desc">@refCard.Description</div>
+                </div>
+            }
+        </div>
+
+        <!-- Process Summary -->
+        <div class="process-summary">
+            <h4>💡 Remember: The Golden Rule</h4>
+            <div class="golden-rule">
+                @foreach (var rule in goldenRules)
+                {
+                    <div class="rule-step">
+                        <span class="rule-number">@rule.Number</span>
+                        <span class="rule-text">@((MarkupString)rule.Text)</span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<LegendItem> legendItems = new();
+    private List<WorkflowStep> workflowSteps = new();
+    private List<GitCommand> gitCommands = new();
+    private List<BitbucketIntegration> bitbucketIntegrations = new();
+    private List<ReferenceCard> referenceCards = new();
+    private List<GoldenRule> goldenRules = new();
+
+    protected override void OnInitialized()
+    {
+        InitializeLegendItems();
+        InitializeWorkflowSteps();
+        InitializeGitCommands();
+        InitializeBitbucketIntegrations();
+        InitializeReferenceCards();
+        InitializeGoldenRules();
+    }
+
+    private void InitializeLegendItems()
+    {
+        legendItems = new List<LegendItem>
+        {
+            new LegendItem { Title = "Master Branch", Description = "Production-ready code only", CssClass = "master-branch" },
+            new LegendItem { Title = "Develop Branch", Description = "Integration branch for features", CssClass = "develop-branch" },
+            new LegendItem { Title = "UAT Branch", Description = "User Acceptance Testing", CssClass = "uat-branch" },
+            new LegendItem { Title = "QA Branch", Description = "Quality Assurance testing", CssClass = "qa-branch" },
+            new LegendItem { Title = "Feature Branches", Description = "New features and enhancements", CssClass = "feature-branch" },
+            new LegendItem { Title = "Bugfix Branches", Description = "Non-critical bug fixes", CssClass = "bugfix-branch" },
+            new LegendItem { Title = "Refactor Branches", Description = "Code improvement and cleanup", CssClass = "refactor-branch" },
+            new LegendItem { Title = "Hotfix Branches", Description = "Critical production fixes", CssClass = "hotfix-branch" }
+        };
+    }
+
+    private void InitializeWorkflowSteps()
+    {
+        workflowSteps = new List<WorkflowStep>
+        {
+            new WorkflowStep { StepNumber = 1, Title = "Feature Development", Description = "Create feature branches from develop, work on features, and merge back via Pull Request" },
+            new WorkflowStep { StepNumber = 2, Title = "Bug Fixes", Description = "Create bugfix branches from develop for non-critical issues" },
+            new WorkflowStep { StepNumber = 3, Title = "QA Testing", Description = "Merge develop to qa branch for quality assurance testing" },
+            new WorkflowStep { StepNumber = 4, Title = "UAT Testing", Description = "Merge qa to uat branch for user acceptance testing" },
+            new WorkflowStep { StepNumber = 5, Title = "Production Deploy", Description = "Merge uat branch to master and tag with version number" },
+            new WorkflowStep { StepNumber = 6, Title = "Emergency Fixes", Description = "Create hotfix branches from master for critical production issues" }
+        };
+    }
+
+    private void InitializeGitCommands()
+    {
+        gitCommands = new List<GitCommand>
+        {
+            new GitCommand { Description = "Create and switch to feature branch", Commands = new List<string> { "git checkout develop", "git checkout -b feature/new-feature" } },
+            new GitCommand { Description = "Push feature branch to Bitbucket", Commands = new List<string> { "git push -u origin feature/new-feature" } },
+            new GitCommand { Description = "Create bugfix branch", Commands = new List<string> { "git checkout develop", "git checkout -b bugfix/fix-issue" } },
+            new GitCommand { Description = "Merge to QA branch", Commands = new List<string> { "git checkout qa", "git merge develop" } },
+            new GitCommand { Description = "Merge to UAT branch", Commands = new List<string> { "git checkout uat", "git merge qa" } },
+            new GitCommand { Description = "Create hotfix branch", Commands = new List<string> { "git checkout master", "git checkout -b hotfix/critical-fix" } },
+            new GitCommand { Description = "Tag a release", Commands = new List<string> { "git tag -a v1.2.0 -m \"Release version 1.2.0\"", "git push origin v1.2.0" } }
+        };
+    }
+
+    private void InitializeBitbucketIntegrations()
+    {
+        bitbucketIntegrations = new List<BitbucketIntegration>
+        {
+            new BitbucketIntegration { Title = "Pull Requests", Description = "Use Bitbucket Pull Requests for code review before merging feature branches" },
+            new BitbucketIntegration { Title = "Branch Permissions", Description = "Protect master, uat, qa and develop branches with branch permissions in Bitbucket settings" },
+            new BitbucketIntegration { Title = "CI/CD Pipelines", Description = "Configure Bitbucket Pipelines to run tests on feature/bugfix branches and deploy from master" },
+            new BitbucketIntegration { Title = "Branch Naming", Description = "Use consistent naming: feature/, bugfix/, hotfix/ prefixes for better organization" }
+        };
+    }
+
+    private void InitializeReferenceCards()
+    {
+        referenceCards = new List<ReferenceCard>
+        {
+            new ReferenceCard
+            {
+                Icon = "👨‍💻",
+                Title = "Development",
+                Branches = new List<BranchInfo>
+                {
+                    new BranchInfo { Name = "feature/", CssClass = "feature" },
+                    new BranchInfo { Name = "develop", CssClass = "develop" }
+                },
+                Description = "Create features from develop branch"
+            },
+            new ReferenceCard
+            {
+                Icon = "🐛",
+                Title = "Bug Fixes",
+                Branches = new List<BranchInfo> { new BranchInfo { Name = "bugfix/", CssClass = "bugfix" } },
+                Description = "Non-critical issue fixes"
+            },
+            new ReferenceCard
+            {
+                Icon = "🔧",
+                Title = "Refactoring",
+                Branches = new List<BranchInfo> { new BranchInfo { Name = "refactor/", CssClass = "refactor" } },
+                Description = "Code improvement & cleanup"
+            },
+            new ReferenceCard
+            {
+                Icon = "🧪",
+                Title = "Testing",
+                Branches = new List<BranchInfo>
+                {
+                    new BranchInfo { Name = "qa", CssClass = "qa" },
+                    new BranchInfo { Name = "uat", CssClass = "uat" }
+                },
+                Description = "Quality assurance & user testing"
+            },
+            new ReferenceCard
+            {
+                Icon = "🚀",
+                Title = "Production",
+                Branches = new List<BranchInfo> { new BranchInfo { Name = "master", CssClass = "master" } },
+                Description = "Live production environment"
+            },
+            new ReferenceCard
+            {
+                Icon = "🚨",
+                Title = "Emergency",
+                Branches = new List<BranchInfo> { new BranchInfo { Name = "hotfix/", CssClass = "hotfix" } },
+                Description = "Critical production fixes",
+                IsEmergency = true
+            }
+        };
+    }
+
+    private void InitializeGoldenRules()
+    {
+        goldenRules = new List<GoldenRule>
+        {
+            new GoldenRule { Number = 1, Text = "Always create branches from <strong>develop</strong>" },
+            new GoldenRule { Number = 2, Text = "Use <strong>Pull Requests</strong> for code review" },
+            new GoldenRule { Number = 3, Text = "Test in <strong>QA → UAT → Production</strong>" },
+            new GoldenRule { Number = 4, Text = "Only <strong>hotfix</strong> directly from master" }
+        };
+    }
+
+    public class LegendItem
+    {
+        public string Title { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string CssClass { get; set; } = "";
+    }
+
+    public class WorkflowStep
+    {
+        public int StepNumber { get; set; }
+        public string Title { get; set; } = "";
+        public string Description { get; set; } = "";
+    }
+
+    public class GitCommand
+    {
+        public string Description { get; set; } = "";
+        public List<string> Commands { get; set; } = new();
+    }
+
+    public class BitbucketIntegration
+    {
+        public string Title { get; set; } = "";
+        public string Description { get; set; } = "";
+    }
+
+    public class ReferenceCard
+    {
+        public string Icon { get; set; } = "";
+        public string Title { get; set; } = "";
+        public List<BranchInfo> Branches { get; set; } = new();
+        public string Description { get; set; } = "";
+        public bool IsEmergency { get; set; } = false;
+    }
+
+    public class BranchInfo
+    {
+        public string Name { get; set; } = "";
+        public string CssClass { get; set; } = "";
+    }
+
+    public class GoldenRule
+    {
+        public int Number { get; set; }
+        public string Text { get; set; } = "";
+    }
+}

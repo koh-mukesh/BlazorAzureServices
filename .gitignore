@@ -1,0 +1,23 @@
+# BlazorAzureServices - Build outputs
+bin/
+obj/
+*.user
+*.suo
+.vs/
+
+# WebAssembly specific
+wwwroot/dist/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Runtime files
+*.tmp
