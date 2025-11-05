@@ -6,6 +6,23 @@
    MY FREQUENT SERVICES TABLE COMPONENT
    ======================================== */
 
+.loading {
+    text-align: center;
+    padding: 40px;
+    font-size: 16px;
+    color: #666;
+}
+
+.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 15px;
+    border: 1px solid #f5c6cb;
+    border-radius: 8px;
+    margin: 20px 0;
+    text-align: center;
+}
+
 .table-container {
     overflow-x: auto;
     background: white;

@@ -1,6 +1,9 @@
 @page "/my-frequent-services-table"
 @using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Forms
 @inject IJSRuntime JSRuntime
+@using BlazorAzureServices.Services
+@inject ConfigurationService ConfigurationService
 
 <PageTitle>My Frequent Azure Services - Table View</PageTitle>
 
@@ -15,70 +18,81 @@
         <p class="subtitle">Quick access to your most used Azure resources in table format</p>
     </header>
 
-    @foreach (var serviceSection in serviceSections)
+    @if (isLoading)
     {
-        <div class="service-section">
-            <div class="section-title" style="cursor: pointer;" @onclick="() => ToggleSection(serviceSection.Type)">
-                <div class="section-info">
-                    <span class="section-icon">@(serviceSection.Icon)</span>
-                    @serviceSection.Name
-                    <span class="toggle-icon">@(serviceSection.IsExpanded ? "▼" : "▶")</span>
+        <div class="loading">Loading services...</div>
+    }
+    else if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="error">@errorMessage</div>
+    }
+    else
+    {
+        @foreach (var serviceSection in serviceSections)
+        {
+            <div class="service-section">
+                <div class="section-title" style="cursor: pointer;" @onclick="() => ToggleSection(serviceSection.Type)">
+                    <div class="section-info">
+                        <span class="section-icon">@(serviceSection.Icon)</span>
+                        @serviceSection.Name
+                        <span class="toggle-icon">@(serviceSection.IsExpanded ? "▼" : "▶")</span>
+                    </div>
+                    <button class="add-btn" @onclick="() => OpenAddModal(serviceSection.Type)" @onclick:stopPropagation="true">+ Add @serviceSection.AddButtonText</button>
                 </div>
-                <button class="add-btn" @onclick="() => OpenAddModal(serviceSection.Type)" @onclick:stopPropagation="true">+ Add @serviceSection.AddButtonText</button>
-            </div>
-            <div class="table-container @(serviceSection.IsExpanded ? "" : "collapsed")">
-                <table class="services-table">
-                    <thead>
-                        <tr>
-                            @foreach (var header in serviceSection.TableHeaders)
-                            {
-                                <th>@header</th>
-                            }
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var resource in serviceSection.Resources)
-                        {
-                            <tr @onclick="() => NavigateToResource(resource.Url)">
-                                <td>
-                                    <div class="table-service-name">
-                                        <span class="table-service-icon">@resource.Icon</span>
-                                        @resource.Name
-                                        @if (!string.IsNullOrEmpty(resource.Tag))
-                                        {
-                                            <span class="table-tag @resource.Tag.ToLower()">@resource.Tag</span>
-                                        }
-                                    </div>
-                                </td>
-                                <td>@resource.Type</td>
-                                <td>@resource.ResourceGroup</td>
-                                <td>@resource.Location</td>
-                                <td>@resource.TierOrRuntime</td>
-                                @if (serviceSection.ShowExtraColumn)
+                <div class="table-container @(serviceSection.IsExpanded ? "" : "collapsed")">
+                    <table class="services-table">
+                        <thead>
+                            <tr>
+                                @foreach (var header in serviceSection.TableHeaders)
                                 {
-                                    <td>
-                                        @if (serviceSection.Type == "apimanagement" && !string.IsNullOrEmpty(resource.ExtraColumn))
-                                        {
-                                            <button type="button" class="table-btn dev-portal" @onclick="() => NavigateToDevPortal(resource)" @onclick:stopPropagation="true">Open Portal</button>
-                                        }
-                                        else
-                                        {
-                                            @resource.ExtraColumn
-                                        }
-                                    </td>
+                                    <th>@header</th>
                                 }
-                                <td><span class="table-status @resource.StatusClass">@resource.Status</span></td>
-                                <td>
-                                    <div class="table-actions">
-                                        <button type="button" class="table-btn view" @onclick="() => NavigateToResource(resource.Url)" @onclick:stopPropagation="true">View</button>
-                                    </div>
-                                </td>
                             </tr>
-                        }
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @foreach (var resource in serviceSection.Resources)
+                            {
+                                <tr @onclick="() => NavigateToResource(resource.Url)">
+                                    <td>
+                                        <div class="table-service-name">
+                                            <span class="table-service-icon">@resource.Icon</span>
+                                            @resource.Name
+                                            @if (!string.IsNullOrEmpty(resource.Tag))
+                                            {
+                                                <span class="table-tag @resource.Tag.ToLower()">@resource.Tag</span>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td>@resource.Type</td>
+                                    <td>@resource.ResourceGroup</td>
+                                    <td>@resource.Location</td>
+                                    <td>@resource.TierOrRuntime</td>
+                                    @if (serviceSection.ShowExtraColumn)
+                                    {
+                                        <td>
+                                            @if (serviceSection.Type == "apimanagement" && !string.IsNullOrEmpty(resource.ExtraColumn))
+                                            {
+                                                <button type="button" class="table-btn dev-portal" @onclick="() => NavigateToDevPortal(resource)" @onclick:stopPropagation="true">Open Portal</button>
+                                            }
+                                            else
+                                            {
+                                                @resource.ExtraColumn
+                                            }
+                                        </td>
+                                    }
+                                    <td><span class="table-status @resource.StatusClass">@resource.Status</span></td>
+                                    <td>
+                                        <div class="table-actions">
+                                            <button type="button" class="table-btn view" @onclick="() => NavigateToResource(resource.Url)" @onclick:stopPropagation="true">View</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
+        }
     }
 </div>
 
@@ -116,7 +130,7 @@
             {
                 <div class="form-group">
                     <label class="form-label">Runtime</label>
-                    <InputSelect class="form-control" @bind-Value="newResource.Runtime">
+                    <InputSelect class="form-control" @bind-Value="newResource.TierOrRuntime">
                         <option value="">Select Runtime</option>
                         <option value=".NET 6">.NET 6</option>
                         <option value=".NET 8">.NET 8</option>
@@ -141,772 +155,31 @@
     private string modalTitle = "";
     private string currentServiceType = "";
     private NewResourceModel newResource = new();
+    private bool isLoading = true;
+    private string errorMessage = "";
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        InitializeServiceSections();
+        await LoadServiceSections();
     }
 
-    private void InitializeServiceSections()
+    private async Task LoadServiceSections()
     {
-        serviceSections = new List<ServiceTableSection>
+        try
         {
-            new ServiceTableSection
-            {
-                Name = "API Management",
-                Icon = "🔌",
-                Type = "apimanagement",
-                AddButtonText = "API Management",
-                IsExpanded = true,
-                ShowExtraColumn = true,
-                TableHeaders = new List<string> { "Service Name", "Type", "Resource Group", "Location", "Tier", "Dev Portal", "Status", "Actions" },
-                Resources = new List<TableResourceItem>
-                {
-                    new TableResourceItem
-                    {
-                        Name = "api-kohler-dev2",
-                        Icon = "🔌",
-                        Type = "API Management",
-                        ResourceGroup = "GLOBAL-API-Management-DEV-rg",
-                        Location = "Central US",
-                        TierOrRuntime = "Developer Tier",
-                        ExtraColumn = "Portal Available",
-                        Status = "Online",
-                        StatusClass = "running",
-                        Tag = "dev",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/global-api-management-dev-rg/providers/Microsoft.ApiManagement/service/api-kohler-dev2/overview"
-                    },
-                    new TableResourceItem
-                    {
-                        Name = "api-kohler-test",
-                        Icon = "🔌",
-                        Type = "API Management",
-                        ResourceGroup = "GLOBAL-API-Management-TEST-rg",
-                        Location = "East US",
-                        TierOrRuntime = "Developer Tier",
-                        ExtraColumn = "Portal Available",
-                        Status = "Online",
-                        StatusClass = "running",
-                        Tag = "test",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/GLOBAL-API-Management-TEST-rg/providers/Microsoft.ApiManagement/service/api-kohler-test/overview"
-                    },
-                    new TableResourceItem
-                    {
-                        Name = "api-kohler-uat",
-                        Icon = "🔌",
-                        Type = "API Management",
-                        ResourceGroup = "GLOBAL-API-Management-PRE-PROD-rg",
-                        Location = "Central US",
-                        TierOrRuntime = "Premium Tier",
-                        ExtraColumn = "Portal Available",
-                        Status = "Online",
-                        StatusClass = "running",
-                        Tag = "uat",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/GLOBAL-API-Management-PRE-PROD-rg/providers/Microsoft.ApiManagement/service/api-kohler-uat/overview"
-                    },
-                    new TableResourceItem
-                    {
-                        Name = "az-amer-prod-kohlerapim-apim",
-                        Icon = "🔌",
-                        Type = "API Management",
-                        ResourceGroup = "az-amer-prod-kohlerapim-rg",
-                        Location = "North Central US",
-                        TierOrRuntime = "Premium Tier",
-                        ExtraColumn = "Portal Available",
-                        Status = "Online",
-                        StatusClass = "running",
-                        Tag = "prod",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/az-amer-prod-kohlerapim-rg/providers/Microsoft.ApiManagement/service/az-amer-prod-kohlerapim-apim/overview"
-                    },
-                    new TableResourceItem
-                    {
-                        Name = "az-amer-prod-kohlerapimdr-apim",
-                        Icon = "🔌",
-                        Type = "API Management",
-                        ResourceGroup = "az-amer-prod-kohlerapimdr-rg",
-                        Location = "West US",
-                        TierOrRuntime = "Premium Tier",
-                        ExtraColumn = "Portal Available",
-                        Status = "Online",
-                        StatusClass = "running",
-                        Tag = "dr",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/az-amer-prod-kohlerapimdr-rg/providers/Microsoft.ApiManagement/service/az-amer-prod-kohlerapimdr-apim/overview"
-                    }
-                }
-            },
-            new ServiceTableSection
-            {
-                Name = "Logic Apps",
-                Icon = "🔄",
-                Type = "logicapps",
-                AddButtonText = "Logic App",
-                IsExpanded = false,
-                ShowExtraColumn = true,
-                TableHeaders = new List<string> { "Service Name", "Type", "Environment", "Resource Group", "Location", "Status", "Actions" },
-                Resources = new List<TableResourceItem>
-                {
-                    new TableResourceItem
-                    {
-                        Name = "APIM-Extension-Logic-App",
-                        Icon = "🔄",
-                        Type = "Logic App",
-                        ResourceGroup = "GLOBAL-API-Management-PROD-rg",
-                        Location = "Central US",
-                        TierOrRuntime = "Production",
-                        Status = "Enabled",
-                        StatusClass = "running",
-                        Tag = "prod",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/GLOBAL-API-Management-PROD-rg/providers/Microsoft.Web/sites/APIM-Extension-Logic-App/appServices"
-                    },
-                    new TableResourceItem
-                    {
-                        Name = "APIM-Extension-Logic-App-Dev",
-                        Icon = "🔄",
-                        Type = "Logic App",
-                        ResourceGroup = "global-api-management-dev-rg",
-                        Location = "Central US",
-                        TierOrRuntime = "Development",
-                        Status = "Enabled",
-                        StatusClass = "running",
-                        Tag = "dev",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/global-api-management-dev-rg/providers/Microsoft.Web/sites/APIM-Extension-Logic-App-Dev/appServices"
-                    },
-                    new TableResourceItem
-                    {
-                        Name = "APIM-Extension-Logic-App-PreProd",
-                        Icon = "🔄",
-                        Type = "Logic App",
-                        ResourceGroup = "GLOBAL-API-Management-PRE-PROD-rg",
-                        Location = "Central US",
-                        TierOrRuntime = "UAT/PreProd",
-                        Status = "Enabled",
-                        StatusClass = "running",
-                        Tag = "uat",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/GLOBAL-API-Management-PRE-PROD-rg/providers/Microsoft.Web/sites/APIM-Extension-Logic-App-PreProd/appServices"
-                    },
-                    new TableResourceItem
-                    {
-                        Name = "APIM-Extension-Logic-App-Test",
-                        Icon = "🔄",
-                        Type = "Logic App",
-                        ResourceGroup = "GLOBAL-API-Management-TEST-rg",
-                        Location = "Central US",
-                        TierOrRuntime = "Test",
-                        Status = "Enabled",
-                        StatusClass = "running",
-                        Tag = "test",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/GLOBAL-API-Management-TEST-rg/providers/Microsoft.Web/sites/APIM-Extension-Logic-App-Test/appServices"
-                    },
-                    new TableResourceItem
-                    {
-                        Name = "product-registration",
-                        Icon = "🔄",
-                        Type = "Logic App",
-                        ResourceGroup = "AMER-ECOMM-SALESFORCE-SERVICE-Test-rg",
-                        Location = "Central US",
-                        TierOrRuntime = "Production",
-                        Status = "Enabled",
-                        StatusClass = "running",
-                        Tag = "test",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/AMER-ECOMM-SALESFORCE-SERVICE-Test-rg/providers/Microsoft.Logic/workflows/product-registration/logicApp"
-                    },
-                    new TableResourceItem
-                    {
-                        Name = "product-registration",
-                        Icon = "🔄",
-                        Type = "Logic App",
-                        ResourceGroup = "AMER-ECOMM-SALESFORCE-SERVICE-DEV-rg",
-                        Location = "Central US",
-                        TierOrRuntime = "Dev",
-                        Status = "Enabled",
-                        StatusClass = "running",
-                        Tag = "dev",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/AMER-ECOMM-SALESFORCE-SERVICE-DEV-rg/providers/Microsoft.Logic/workflows/product-registration/logicApp"
-                    },
-                    new TableResourceItem
-                    {
-                        Name = "salesforce-ecomm-logicapp-prod",
-                        Icon = "🔄",
-                        Type = "Logic App",
-                        ResourceGroup = "rg-salesforce-prod",
-                        Location = "East US",
-                        TierOrRuntime = "Production",
-                        Status = "Enabled",
-                        StatusClass = "running",
-                        Tag = "prod",
-                        Url = "https://portal.azure.com/#@/resource/subscriptions/your-subscription/resourceGroups/your-rg/providers/Microsoft.Logic/workflows/salesforce-ecomm-logicapp-prod"
-                    }
-                }
-            },
-            new ServiceTableSection
-            {
-                Name = "Azure Functions",
-                Icon = "⚡",
-                Type = "functions",
-                AddButtonText = "Function App",
-                IsExpanded = false,
-                ShowExtraColumn = false,
-                TableHeaders = new List<string> { "Service Name", "Type", "Resource Group", "Location", "Runtime", "Status", "Actions" },
-                Resources = new List<TableResourceItem>
-                {
-                    new TableResourceItem
-                    {
-                        Name = "apim-services-func-dev",
-                        Icon = "⚡",
-                        Type = "Function App",
-                        ResourceGroup = "global-api-management-dev-rg",
-                        Location = "Central US",
-                        TierOrRuntime = ".NET 6",
-                        Status = "Running",
-                        StatusClass = "running",
-                        Tag = "dev",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/global-api-management-dev-rg/providers/Microsoft.Web/sites/apim-services-func-dev/appServices"
-                    },
-                    new TableResourceItem
-                    {
-                        Name = "apim-services-func-test",
-                        Icon = "⚡",
-                        Type = "Function App",
-                        ResourceGroup = "global-api-management-test-rg",
-                        Location = "Central US",
-                        TierOrRuntime = "Python 3.9",
-                        Status = "Running",
-                        StatusClass = "running",
-                        Tag = "test",
-                        Url = "https://portal.azure.com/#@/resource/subscriptions/your-subscription/resourceGroups/rg-development/providers/Microsoft.Web/sites/data-processor-func"
-                    },
-                    new TableResourceItem
-                    {
-                        Name = "apim-services-func-uat",
-                        Icon = "⚡",
-                        Type = "Function App",
-                        ResourceGroup = "global-api-management-pre-prod-rg",
-                        Location = "Central US",
-                        TierOrRuntime = "Python 3.9",
-                        Status = "Running",
-                        StatusClass = "running",
-                        Tag = "uat",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/global-api-management-pre-prod-rg/providers/Microsoft.Web/sites/apim-services-func-uat/appServices"
-                    },
-                    new TableResourceItem
-                    {
-                        Name = "apim-services-func-prod",
-                        Icon = "⚡",
-                        Type = "Function App",
-                        ResourceGroup = "global-api-management-prod-rg",
-                        Location = "Central US",
-                        TierOrRuntime = "Python 3.9",
-                        Status = "Running",
-                        StatusClass = "running",
-                        Tag = "prod",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/global-api-management-prod-rg/providers/Microsoft.Web/sites/apim-services-func-prod/appServices"
-                    },
-                    new TableResourceItem
-                    {
-                        Name = "asr-finder-dev",
-                        Icon = "⚡",
-                        Type = "Function App",
-                        ResourceGroup = "AMER-TEST-ASR-FINDER-rg",
-                        Location = "Central US",
-                        TierOrRuntime = "Python 3.9",
-                        Status = "Running",
-                        StatusClass = "running",
-                        Tag = "dev",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/AMER-TEST-ASR-FINDER-rg/providers/Microsoft.Web/sites/asr-finder-dev/appServices"
-                    },
-                    new TableResourceItem
-                    {
-                        Name = "asr-finder-integration-qa",
-                        Icon = "⚡",
-                        Type = "Function App",
-                        ResourceGroup = "AMER-TEST-ASR-FINDER-rg",
-                        Location = "Central US",
-                        TierOrRuntime = "Python 3.9",
-                        Status = "Running",
-                        StatusClass = "running",
-                        Tag = "test",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/AMER-TEST-ASR-FINDER-rg/providers/Microsoft.Web/sites/asr-finder-integration-qa/appServices"
-                    },
-                    new TableResourceItem
-                    {
-                        Name = "asr-finder-integration-uat",
-                        Icon = "⚡",
-                        Type = "Function App",
-                        ResourceGroup = "AMER-TEST-ASR-FINDER-rg",
-                        Location = "Central US",
-                        TierOrRuntime = "Python 3.9",
-                        Status = "Running",
-                        StatusClass = "running",
-                        Tag = "uat",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/AMER-TEST-ASR-FINDER-rg/providers/Microsoft.Web/sites/asr-finder-integration-uat/appServices"
-                    },
-                    new TableResourceItem
-                    {
-                        Name = "asr-finder-integration-prod",
-                        Icon = "⚡",
-                        Type = "Function App",
-                        ResourceGroup = "AMER-PROD-ASR-FINDER-rg",
-                        Location = "Central US",
-                        TierOrRuntime = "Python 3.9",
-                        Status = "Running",
-                        StatusClass = "running",
-                        Tag = "prod",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/AMER-PROD-ASR-FINDER-rg/providers/Microsoft.Web/sites/asr-finder-integration-prod/appServices"
-                    },
-                    new TableResourceItem
-                    {
-                        Name = "commercetools-product-integrations-preprod",
-                        Icon = "⚡",
-                        Type = "Function App",
-                        ResourceGroup = "GLOBAL-COMMERCETOOLS-PREPROD-rg",
-                        Location = "Central US",
-                        TierOrRuntime = "Python 3.9",
-                        Status = "Running",
-                        StatusClass = "running",
-                        Tag = "uat",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/GLOBAL-COMMERCETOOLS-PREPROD-rg/providers/Microsoft.Web/sites/commercetools-product-integrations-preprod/appServices"
-                    },
-                    new TableResourceItem
-                    {
-                        Name = "commercetools-product-integrations-qa",
-                        Icon = "⚡",
-                        Type = "Function App",
-                        ResourceGroup = "GLOBAL-COMMERCETOOLS-TEST-rg",
-                        Location = "Central US",
-                        TierOrRuntime = "Python 3.9",
-                        Status = "Running",
-                        StatusClass = "running",
-                        Tag = "test",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/GLOBAL-COMMERCETOOLS-TEST-rg/providers/Microsoft.Web/sites/commercetools-product-integrations-qa/appServices"
-                    },
-                    new TableResourceItem
-                    {
-                        Name = "ecomm-aem-funcapp-prod",
-                        Icon = "⚡",
-                        Type = "Function App",
-                        ResourceGroup = "global-aem-prod-rg",
-                        Location = "Central US",
-                        TierOrRuntime = "Python 3.9",
-                        Status = "Running",
-                        StatusClass = "running",
-                        Tag = "prod",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/global-aem-prod-rg/providers/Microsoft.Web/sites/ecomm-aem-funcapp-prod/appServices"
-                    },
-                    new TableResourceItem
-                    {
-                        Name = "ecomm-aem-funcapp-test",
-                        Icon = "⚡",
-                        Type = "Function App",
-                        ResourceGroup = "global-aem-test-rg",
-                        Location = "Central US",
-                        TierOrRuntime = "Python 3.9",
-                        Status = "Running",
-                        StatusClass = "running",
-                        Tag = "test",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/global-aem-test-rg/providers/Microsoft.Web/sites/ecomm-aem-funcapp-test/appServices"
-                    },
-                    new TableResourceItem
-                    {
-                        Name = "ecomm-aem-funcapp-uat",
-                        Icon = "⚡",
-                        Type = "Function App",
-                        ResourceGroup = "GLOBAL-AEM-STAGE-rg",
-                        Location = "Central US",
-                        TierOrRuntime = "Python 3.9",
-                        Status = "Running",
-                        StatusClass = "running",
-                        Tag = "uat",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/GLOBAL-AEM-STAGE-rg/providers/Microsoft.Web/sites/ecomm-aem-funcapp-uat/appServices"
-                    },
-                    new TableResourceItem
-                    {
-                        Name = "ecomm-salesforce-middleware",
-                        Icon = "⚡",
-                        Type = "Function App",
-                        ResourceGroup = "AMER-ECOMM-SALESFORCE-SERVICE-DEV-rg",
-                        Location = "Central US",
-                        TierOrRuntime = "Python 3.9",
-                        Status = "Running",
-                        StatusClass = "running",
-                        Tag = "dev",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/AMER-ECOMM-SALESFORCE-SERVICE-DEV-rg/providers/Microsoft.Web/sites/ecomm-salesforce-middleware/appServices"
-                    },
-                    new TableResourceItem
-                    {
-                        Name = "ecomm-salesforce-middleware-dev",
-                        Icon = "⚡",
-                        Type = "Function App",
-                        ResourceGroup = "AMER-ECOMM-SALESFORCE-SERVICE-DEV-rg",
-                        Location = "Central US",
-                        TierOrRuntime = "Python 3.9",
-                        Status = "Running",
-                        StatusClass = "running",
-                        Tag = "dev",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/AMER-ECOMM-SALESFORCE-SERVICE-DEV-rg/providers/Microsoft.Web/sites/ecomm-salesforce-middleware-dev/appServices"
-                    },
-                    new TableResourceItem
-                    {
-                        Name = "ecomm-salesforce-middleware-prod",
-                        Icon = "⚡",
-                        Type = "Function App",
-                        ResourceGroup = "amer-ecomm-salesforce-service-prd-rg",
-                        Location = "Central US",
-                        TierOrRuntime = "Python 3.9",
-                        Status = "Running",
-                        StatusClass = "running",
-                        Tag = "prod",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/amer-ecomm-salesforce-service-prd-rg/providers/Microsoft.Web/sites/ecomm-salesforce-middleware-prod/appServices"
-                    },
-                    new TableResourceItem
-                    {
-                        Name = "ecomm-salesforce-middleware-test",
-                        Icon = "⚡",
-                        Type = "Function App",
-                        ResourceGroup = "amer-ecomm-salesforce-service-test-rg",
-                        Location = "Central US",
-                        TierOrRuntime = "Python 3.9",
-                        Status = "Running",
-                        StatusClass = "running",
-                        Tag = "test",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/amer-ecomm-salesforce-service-test-rg/providers/Microsoft.Web/sites/ecomm-salesforce-middleware-test/appServices"
-                    },
-                    new TableResourceItem
-                    {
-                        Name = "kohler-zip-download-service",
-                        Icon = "⚡",
-                        Type = "Function App",
-                        ResourceGroup = "global-aem-test-rg",
-                        Location = "Central US",
-                        TierOrRuntime = "Python 3.9",
-                        Status = "Running",
-                        StatusClass = "running",
-                        Tag = "test",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/global-aem-test-rg/providers/Microsoft.Web/sites/kohler-zip-download-service/appServices"
-                    }
-                }
-            },
-            new ServiceTableSection
-            {
-                Name = "Key Vault",
-                Icon = "🗝️",
-                Type = "keyvault",
-                AddButtonText = "Key Vault",
-                IsExpanded = false,
-                ShowExtraColumn = false,
-                TableHeaders = new List<string> { "Service Name", "Type", "Resource Group", "Location", "Tier", "Status", "Actions" },
-                Resources = new List<TableResourceItem>
-                {
-                    new TableResourceItem
-                    {
-                        Name = "apim-services-kv-dev",
-                        Icon = "🗝️",
-                        Type = "Key vault",
-                        ResourceGroup = "GLOBAL-API-Management-DEV-rg",
-                        Location = "Central US",
-                        TierOrRuntime = "Standard",
-                        Status = "Online",
-                        StatusClass = "running",
-                        Tag = "dev",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/GLOBAL-API-Management-DEV-rg/providers/Microsoft.KeyVault/vaults/apim-services-kv-dev/overview"
-                    },
-                    new TableResourceItem
-                    {
-                        Name = "apim-services-kv-uat",
-                        Icon = "🗝️",
-                        Type = "Key vault",
-                        ResourceGroup = "GLOBAL-API-Management-PRE-PROD-rg",
-                        Location = "Central US",
-                        TierOrRuntime = "Standard",
-                        Status = "Online",
-                        StatusClass = "running",
-                        Tag = "uat",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/GLOBAL-API-Management-PRE-PROD-rg/providers/Microsoft.KeyVault/vaults/apim-services-kv-uat/overview"
-                    },
-                    new TableResourceItem
-                    {
-                        Name = "vault-kohler-api-dev",
-                        Icon = "🗝️",
-                        Type = "Key vault",
-                        ResourceGroup = "GLOBAL-API-Management-DEV-rg",
-                        Location = "Central US",
-                        TierOrRuntime = "Standard",
-                        Status = "Online",
-                        StatusClass = "running",
-                        Tag = "dev",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/GLOBAL-API-Management-DEV-rg/providers/Microsoft.KeyVault/vaults/vault-kohler-api-dev/overview"
-                    },
-                    new TableResourceItem
-                    {
-                        Name = "vault-kohler-api-test",
-                        Icon = "🗝️",
-                        Type = "Key vault",
-                        ResourceGroup = "GLOBAL-API-Management-TEST-rg",
-                        Location = "Central US",
-                        TierOrRuntime = "Standard",
-                        Status = "Online",
-                        StatusClass = "running",
-                        Tag = "test",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/GLOBAL-API-Management-TEST-rg/providers/Microsoft.KeyVault/vaults/vault-kohler-api-test/overview"
-                    },
-                    new TableResourceItem
-                    {
-                        Name = "vault-kohler-api-uat",
-                        Icon = "🗝️",
-                        Type = "Key vault",
-                        ResourceGroup = "GLOBAL-API-Management-PRE-PROD-rg",
-                        Location = "Central US",
-                        TierOrRuntime = "Standard",
-                        Status = "Online",
-                        StatusClass = "running",
-                        Tag = "uat",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/GLOBAL-API-Management-PRE-PROD-rg/providers/Microsoft.KeyVault/vaults/vault-kohler-api-uat/overview"
-                    }
-                }
-            },
-            new ServiceTableSection
-            {
-                Name = "Application Insights",
-                Icon = "📊",
-                Type = "appinsights",
-                AddButtonText = "Application Insights",
-                IsExpanded = false,
-                ShowExtraColumn = false,
-                TableHeaders = new List<string> { "Service Name", "Type", "Resource Group", "Location", "Tier", "Status", "Actions" },
-                Resources = new List<TableResourceItem>
-                {
-                    new TableResourceItem
-                    {
-                        Name = "az-amer-prod-kohlerapim-appi",
-                        Icon = "📊",
-                        Type = "App Insights",
-                        ResourceGroup = "az-amer-prod-kohlerapimmonitoring-rg",
-                        Location = "North Central US",
-                        TierOrRuntime = "App Insights",
-                        Status = "Online",
-                        StatusClass = "running",
-                        Tag = "prod",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/az-amer-prod-kohlerapimmonitoring-rg/providers/microsoft.insights/components/az-amer-prod-kohlerapim-appi/overview"
-                    },
-                    new TableResourceItem
-                    {
-                        Name = "ecomm-app-insight-test",
-                        Icon = "📊",
-                        Type = "App Insights",
-                        ResourceGroup = "GLOBAL-API-Management-TEST-rg",
-                        Location = "Central US",
-                        TierOrRuntime = "App Insights",
-                        Status = "Online",
-                        StatusClass = "running",
-                        Tag = "test",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/GLOBAL-API-Management-TEST-rg/providers/microsoft.insights/components/ecomm-app-insight-test/overview"
-                    },
-                    new TableResourceItem
-                    {
-                        Name = "ecomm-apim-preprod",
-                        Icon = "📊",
-                        Type = "App Insights",
-                        ResourceGroup = "GLOBAL-API-Management-PRE-PROD-rg",
-                        Location = "Central US",
-                        TierOrRuntime = "App Insights",
-                        Status = "Online",
-                        StatusClass = "running",
-                        Tag = "uat",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/GLOBAL-API-Management-PRE-PROD-rg/providers/microsoft.insights/components/ecomm-apim-preprod/overview"
-                    },
-                    new TableResourceItem
-                    {
-                        Name = "ecomm-salesforce-middleware",
-                        Icon = "📊",
-                        Type = "App Insights",
-                        ResourceGroup = "AMER-ECOMM-SALESFORCE-SERVICE-DEV-rg",
-                        Location = "Central US",
-                        TierOrRuntime = "App Insights",
-                        Status = "Online",
-                        StatusClass = "running",
-                        Tag = "dev",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/AMER-ECOMM-SALESFORCE-SERVICE-DEV-rg/providers/microsoft.insights/components/ecomm-salesforce-middleware/overview"
-                    },
-                    new TableResourceItem
-                    {
-                        Name = "ecomm-salesforce-middleware-test",
-                        Icon = "📊",
-                        Type = "App Insights",
-                        ResourceGroup = "AMER-ECOMM-SALESFORCE-SERVICE-Test-rg",
-                        Location = "Central US",
-                        TierOrRuntime = "App Insights",
-                        Status = "Online",
-                        StatusClass = "running",
-                        Tag = "test",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/AMER-ECOMM-SALESFORCE-SERVICE-Test-rg/providers/microsoft.insights/components/ecomm-salesforce-middleware-test/overview"
-                    }
-                }
-            },
-            new ServiceTableSection
-            {
-                Name = "Cosmos DB",
-                Icon = "🌐",
-                Type = "cosmosdb",
-                AddButtonText = "Cosmos DB",
-                IsExpanded = false,
-                ShowExtraColumn = false,
-                TableHeaders = new List<string> { "Service Name", "Type", "Resource Group", "Location", "API", "Status", "Actions" },
-                Resources = new List<TableResourceItem>
-                {
-                    new TableResourceItem
-                    {
-                        Name = "az-amer-dev-asrfinder-cosmos",
-                        Icon = "🌐",
-                        Type = "Cosmos DB",
-                        ResourceGroup = "AMER-TEST-ASR-FINDER-rg",
-                        Location = "Central US",
-                        TierOrRuntime = "SQL API",
-                        Status = "Online",
-                        StatusClass = "running",
-                        Tag = "dev",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/AMER-TEST-ASR-FINDER-rg/providers/Microsoft.DocumentDb/databaseAccounts/az-amer-dev-asrfinder-cosmos/overview"
-                    },
-                    new TableResourceItem
-                    {
-                        Name = "az-amer-uat-asrfinder-cosmos",
-                        Icon = "🌐",
-                        Type = "Cosmos DB",
-                        ResourceGroup = "AMER-TEST-ASR-FINDER-rg",
-                        Location = "Central US",
-                        TierOrRuntime = "SQL API",
-                        Status = "Online",
-                        StatusClass = "running",
-                        Tag = "uat",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/AMER-TEST-ASR-FINDER-rg/providers/Microsoft.DocumentDb/databaseAccounts/az-amer-uat-asrfinder-cosmos/overview"
-                    }
-                }
-            },
-            new ServiceTableSection
-            {
-                Name = "App Services",
-                Icon = "🌐",
-                Type = "appservices",
-                AddButtonText = "App Service",
-                IsExpanded = false,
-                ShowExtraColumn = false,
-                TableHeaders = new List<string> { "Service Name", "Type", "Resource Group", "Location", "Runtime", "Status", "Actions" },
-                Resources = new List<TableResourceItem>
-                {
-                    new TableResourceItem
-                    {
-                        Name = "my-webapp",
-                        Icon = "🌐",
-                        Type = "App Service",
-                        ResourceGroup = "rg-web",
-                        Location = "East US",
-                        TierOrRuntime = "Node.js 18",
-                        Status = "Running",
-                        StatusClass = "running",
-                        Url = "https://portal.azure.com/#@/resource/subscriptions/your-subscription/resourceGroups/rg-web/providers/Microsoft.Web/sites/my-webapp"
-                    }
-                }
-            },
-            new ServiceTableSection
-            {
-                Name = "Storage Accounts",
-                Icon = "💾",
-                Type = "storage",
-                AddButtonText = "Storage Account",
-                IsExpanded = false,
-                ShowExtraColumn = false,
-                TableHeaders = new List<string> { "Service Name", "Type", "Resource Group", "Location", "Performance", "Status", "Actions" },
-                Resources = new List<TableResourceItem>
-                {
-                    new TableResourceItem
-                    {
-                        Name = "mystorageaccount001",
-                        Icon = "💾",
-                        Type = "Storage Account",
-                        ResourceGroup = "rg-storage",
-                        Location = "East US",
-                        TierOrRuntime = "Standard LRS",
-                        Status = "Active",
-                        StatusClass = "running",
-                        Url = "https://portal.azure.com/#@/resource/subscriptions/your-subscription/resourceGroups/rg-storage/providers/Microsoft.Storage/storageAccounts/mystorageaccount001"
-                    }
-                }
-            },
-            new ServiceTableSection
-            {
-                Name = "Resource Groups",
-                Icon = "📁",
-                Type = "resourcegroups",
-                AddButtonText = "Resource Group",
-                IsExpanded = false,
-                ShowExtraColumn = false,
-                TableHeaders = new List<string> { "Resource Group Name", "Type", "Subscription", "Location", "Resources", "Status", "Actions" },
-                Resources = new List<TableResourceItem>
-                {
-                    new TableResourceItem
-                    {
-                        Name = "rg-production",
-                        Icon = "📁",
-                        Type = "Resource Group",
-                        ResourceGroup = "Primary Subscription",
-                        Location = "East US",
-                        TierOrRuntime = "12 Resources",
-                        Status = "Active",
-                        StatusClass = "running",
-                        Url = "https://portal.azure.com/#@/resource/subscriptions/your-subscription/resourceGroups/rg-production"
-                    }
-                }
-            },
-            new ServiceTableSection
-            {
-                Name = "Azure Data Factory",
-                Icon = "🏭",
-                Type = "datafactory",
-                AddButtonText = "Data Factory",
-                IsExpanded = false,
-                ShowExtraColumn = false,
-                TableHeaders = new List<string> { "Service Name", "Type", "Resource Group", "Location", "Version", "Status", "Actions" },
-                Resources = new List<TableResourceItem>
-                {
-                    new TableResourceItem
-                    {
-                        Name = "az-amer-dev-hcm-adf",
-                        Icon = "🏭",
-                        Type = "Data Factory V2",
-                        ResourceGroup = "az-amer-dev-hcm-rg",
-                        Location = "Central US",
-                        TierOrRuntime = "V2",
-                        Status = "Running",
-                        StatusClass = "running",
-                        Tag = "dev",
-                        Url = "https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/e4e37c2d-09d5-4584-9b5b-e4d389d8cd1b/resourceGroups/az-amer-dev-hcm-rg/providers/Microsoft.DataFactory/factories/az-amer-dev-hcm-adf/overview"
-                    }
-                }
-            },
-            new ServiceTableSection
-            {
-                Name = "Azure Cognitive Search",
-                Icon = "🔍",
-                Type = "cognitivesearch",
-                AddButtonText = "Cognitive Search",
-                IsExpanded = false,
-                ShowExtraColumn = false,
-                TableHeaders = new List<string> { "Service Name", "Type", "Resource Group", "Location", "Pricing Tier", "Status", "Actions" },
-                Resources = new List<TableResourceItem>
-                {
-                    new TableResourceItem
-                    {
-                        Name = "my-search-service",
-                        Icon = "🔍",
-                        Type = "Search Service",
-                        ResourceGroup = "rg-search",
-                        Location = "East US",
-                        TierOrRuntime = "Standard",
-                        Status = "Running",
-                        StatusClass = "running",
-                        Url = "https://portal.azure.com/#@/resource/subscriptions/your-subscription/resourceGroups/rg-search/providers/Microsoft.Search/searchServices/my-search-service"
-                    }
-                }
-            }
-        };
+            isLoading = true;
+            serviceSections = await ConfigurationService.LoadServiceSectionsAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading services: {ex.Message}";
+            Console.WriteLine(errorMessage);
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
     }
 
     private void ToggleSection(string sectionType)
@@ -952,7 +225,7 @@
                 Type = serviceConfig.Title,
                 ResourceGroup = newResource.ResourceGroup,
                 Location = newResource.Location,
-                TierOrRuntime = GetTierOrRuntime(currentServiceType, newResource.Runtime),
+                TierOrRuntime = GetTierOrRuntime(currentServiceType, newResource.TierOrRuntime),
                 Status = GetDefaultStatus(currentServiceType),
                 StatusClass = "running"
             };
@@ -1022,44 +295,9 @@
         };
     }
 
-    public class ServiceTableSection
-    {
-        public string Name { get; set; } = "";
-        public string Icon { get; set; } = "";
-        public string Type { get; set; } = "";
-        public string AddButtonText { get; set; } = "";
-        public bool IsExpanded { get; set; } = false;
-        public bool ShowExtraColumn { get; set; } = false;
-        public List<string> TableHeaders { get; set; } = new();
-        public List<TableResourceItem> Resources { get; set; } = new();
-    }
-
-    public class TableResourceItem
-    {
-        public string Name { get; set; } = "";
-        public string Icon { get; set; } = "";
-        public string Type { get; set; } = "";
-        public string ResourceGroup { get; set; } = "";
-        public string Location { get; set; } = "";
-        public string TierOrRuntime { get; set; } = "";
-        public string ExtraColumn { get; set; } = "";
-        public string Status { get; set; } = "";
-        public string StatusClass { get; set; } = "";
-        public string? Tag { get; set; }
-        public string? Url { get; set; }
-    }
-
     public class ServiceConfig
     {
         public string Title { get; set; } = "";
         public string Icon { get; set; } = "";
-    }
-
-    public class NewResourceModel
-    {
-        public string Name { get; set; } = "";
-        public string ResourceGroup { get; set; } = "";
-        public string Location { get; set; } = "";
-        public string Runtime { get; set; } = "";
     }
 }

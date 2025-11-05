@@ -1,0 +1,20 @@
+API Management
+Service Name		Type		Resource Group			Location	Tier		Dev Portal	Status	Actions
+---------------------------------------------------------------------------------------------------------------------------------------
+api-kohler-dev2 dev 	API Management	GLOBAL-API-Management-DEV-rg	Central US	Developer Tier	Open Portal	Online 	View
+api-kohler-test test	API Management	GLOBAL-API-Management-TEST-rg	East US		Developer Tier	Open Portal	Online	View
+api-kohler-prod prod	API Management	GLOBAL-API-Management-PROD-rg	Central US	Premium Tier	Open Portal	Online	View
+
+Logic Apps
+Service Name			Type		Environment	Resource Group			Location	Status	Actions
+---------------------------------------------------------------------------------------------------------------------------------------
+APIM-Extension-Logic-App prod	Logic App	Production	GLOBAL-API-Management-PROD-rg	Central US	Enabled	View
+APIM-Extension-Logic-App dev	Logic App	Development	GLOBAL-API-Management-DEV-rg	Central US	Enabled	View
+APIM-Extension-Logic-App test	Logic App	Test		GLOBAL-API-Management-TEST-rg	Central US	Enabled	View
+
+Azure Functions
+Service Name			Type		Resource Group			Location	Runtime		Status	Actions
+---------------------------------------------------------------------------------------------------------------------------------------
+apim-services-func-dev dev	Function App	global-api-management-dev-rg	Central US	.NET 6		Running	View
+apim-services-func-test test	Function App	global-api-management-test-rg	Central US	Python 3.9	Running	View
+apim-services-func-prod prod	Function App	global-api-management-prod-rg	Central US	Python 3.9	Running	View
