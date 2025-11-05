@@ -2,31 +2,25 @@
 
 ## Overview
 
-The Azure Services Dashboard now supports configurable service definitions through the `settings.txt` file. This allows you to update service details without modifying the source code.
+The Azure Services Dashboard now supports configurable service definitions through the `settings.csv` file. This allows you to update service details without modifying the source code.
 
 ## Configuration File Format
 
-The `settings.txt` file follows a simple tab-delimited format:
+The `settings.csv` file follows a standard CSV (Comma-Separated Values) format:
 
 ### Structure
-1. **First line**: Service Section Name (e.g., "API Management")
-2. **Second line**: Column headers (tab-separated)
-3. **Third line**: Dashed separator line (optional, will be skipped)
-4. **Fourth+ lines**: Service data (tab-separated values)
+1. **First line**: Header row with column names (comma-separated)
+2. **Subsequent lines**: Service data (comma-separated values)
+3. **Section column**: First column indicates the service section/category
 
 ### Example Format
 
-```
-API Management
-Service Name		Type		Resource Group			Location	Tier		Dev Portal	Status	Actions
----------------------------------------------------------------------------------------------------------------------------------------
-api-kohler-dev2 dev 	API Management	GLOBAL-API-Management-DEV-rg	Central US	Developer Tier	Open Portal	Online 	View
-api-kohler-test test	API Management	GLOBAL-API-Management-TEST-rg	East US		Developer Tier	Open Portal	Online	View
-
-Logic Apps
-Service Name			Type		Environment	Resource Group			Location	Status	Actions
----------------------------------------------------------------------------------------------------------------------------------------
-APIM-Extension-Logic-App prod	Logic App	Production	GLOBAL-API-Management-PROD-rg	Central US	Enabled	View
+```csv
+Section,Service Name,Type,Resource Group,Location,Tier,Dev Portal,Status,Actions,Environment,Runtime
+API Management,api-kohler-dev2 dev,API Management,GLOBAL-API-Management-DEV-rg,Central US,Developer Tier,Open Portal,Online,View,,
+API Management,api-kohler-test test,API Management,GLOBAL-API-Management-TEST-rg,East US,Developer Tier,Open Portal,Online,View,,
+Logic Apps,APIM-Extension-Logic-App prod,Logic App,GLOBAL-API-Management-PROD-rg,Central US,,,Enabled,View,Production,
+Azure Functions,apim-services-func-dev dev,Function App,global-api-management-dev-rg,Central US,,,Running,View,,.NET 6
 ```
 
 ## Column Mappings
@@ -68,19 +62,18 @@ Icons are automatically assigned based on service type:
 
 To add new services:
 
-1. Open `wwwroot/settings.txt`
-2. Add a new section with:
-   - Section name
-   - Column headers
-   - Service data rows
+1. Open `settings.csv` (or `wwwroot/settings.csv`)
+2. Add new rows with:
+   - Section name in first column
+   - Service data in subsequent columns
 3. Save the file
 4. Refresh the application
 
 ## File Location
 
 The configuration file must be placed in:
-- **Source**: `settings.txt` (root directory)
-- **Runtime**: `wwwroot/settings.txt` (automatically copied during build)
+- **Source**: `settings.csv` (root directory)
+- **Runtime**: `wwwroot/settings.csv` (automatically copied during build)
 
 ## Error Handling
 
@@ -100,7 +93,7 @@ Note: You may need to update the subscription ID in the `ConfigurationService.cs
 
 ## Best Practices
 
-1. **Use tabs**: Ensure columns are separated by tab characters
+- **Use commas**: Ensure columns are separated by comma characters
 2. **Consistent headers**: Use standard column names for automatic mapping
 3. **Environment tags**: Include environment indicators in service names
 4. **Test format**: Validate the format by checking the application after changes
@@ -108,8 +101,8 @@ Note: You may need to update the subscription ID in the `ConfigurationService.cs
 
 ## Troubleshooting
 
-- **No services shown**: Check if `wwwroot/settings.txt` exists
-- **Parsing errors**: Ensure proper tab separation and format
+- **No services shown**: Check if `wwwroot/settings.csv` exists
+- **Parsing errors**: Ensure proper CSV format and comma separation
 - **Missing columns**: Verify column headers match expected names
 - **Console logs**: Check browser developer tools for error messages
 

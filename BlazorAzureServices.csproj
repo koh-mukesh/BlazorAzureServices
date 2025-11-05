@@ -12,14 +12,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="settings.txt">
+    <Content Include="settings.csv">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <CopyToPublishDirectory>Always</CopyToPublishDirectory>
     </Content>
   </ItemGroup>
 
   <Target Name="CopySettingsFile" BeforeTargets="Build">
-    <Copy SourceFiles="settings.txt" DestinationFiles="wwwroot/settings.txt" />
+    <Copy SourceFiles="settings.csv" DestinationFiles="wwwroot/settings.csv" />
   </Target>
 
 </Project>

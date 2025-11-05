@@ -1,0 +1,10 @@
+Section,Service Name,Type,Resource Group,Location,Tier,Dev Portal,Status,Actions,Environment,Runtime
+API Management,api-kohler-dev2 dev,API Management,GLOBAL-API-Management-DEV-rg,Central US,Developer Tier,Open Portal,Online,View,,
+API Management,api-kohler-test test,API Management,GLOBAL-API-Management-TEST-rg,East US,Developer Tier,Open Portal,Online,View,,
+API Management,api-kohler-prod prod,API Management,GLOBAL-API-Management-PROD-rg,Central US,Premium Tier,Open Portal,Online,View,,
+Logic Apps,APIM-Extension-Logic-App prod,Logic App,GLOBAL-API-Management-PROD-rg,Central US,,,Enabled,View,Production,
+Logic Apps,APIM-Extension-Logic-App dev,Logic App,GLOBAL-API-Management-DEV-rg,Central US,,,Enabled,View,Development,
+Logic Apps,APIM-Extension-Logic-App test,Logic App,GLOBAL-API-Management-TEST-rg,Central US,,,Enabled,View,Test,
+Azure Functions,apim-services-func-dev dev,Function App,global-api-management-dev-rg,Central US,,,Running,View,,.NET 6
+Azure Functions,apim-services-func-test test,Function App,global-api-management-test-rg,Central US,,,Running,View,,Python 3.9
+Azure Functions,apim-services-func-prod prod,Function App,global-api-management-prod-rg,Central US,,,Running,View,,Python 3.9

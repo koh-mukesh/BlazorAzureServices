@@ -15,10 +15,10 @@ public class ConfigurationService
     {
         try
         {
-            Console.WriteLine("Loading configuration from settings.txt...");
-            var configContent = await _httpClient.GetStringAsync("settings.txt");
+            Console.WriteLine("Loading configuration from settings.csv...");
+            var configContent = await _httpClient.GetStringAsync("settings.csv");
             Console.WriteLine($"Configuration loaded, content length: {configContent.Length}");
-            var sections = ParseConfigurationContent(configContent);
+            var sections = ParseCsvConfigurationContent(configContent);
             Console.WriteLine($"Parsed {sections.Count} sections");
             return sections;
         }
@@ -29,79 +29,97 @@ public class ConfigurationService
         }
     }
 
-    private List<ServiceTableSection> ParseConfigurationContent(string content)
+    private List<ServiceTableSection> ParseCsvConfigurationContent(string content)
     {
-        var sections = new List<ServiceTableSection>();
+        var sections = new Dictionary<string, ServiceTableSection>();
         var lines = content.Split('\n', StringSplitOptions.RemoveEmptyEntries)
                           .Select(line => line.Trim())
                           .Where(line => !string.IsNullOrWhiteSpace(line))
                           .ToList();
 
-        Console.WriteLine($"Processing {lines.Count} lines from configuration");
+        Console.WriteLine($"Processing {lines.Count} lines from CSV configuration");
 
-        for (int i = 0; i < lines.Count; i++)
+        if (lines.Count < 2)
         {
-            var line = lines[i];
+            Console.WriteLine("CSV file must have at least a header row and one data row");
+            return GetDefaultServiceSections();
+        }
+
+        // Parse header row
+        var headers = ParseCsvLine(lines[0]);
+        
+        // Process data rows
+        for (int i = 1; i < lines.Count; i++)
+        {
+            var dataRow = ParseCsvLine(lines[i]);
             
-            // Skip dashed separator lines
-            if (line.StartsWith("---"))
-                continue;
-
-            // Check if this line might be a section header (not containing tabs and not being a header row)
-            if (!line.Contains('\t') && 
-                i + 1 < lines.Count && 
-                lines[i + 1].Contains('\t') && 
-                !lines[i + 1].StartsWith("---"))
+            if (dataRow.Count != headers.Count)
             {
-                var sectionName = line;
-                var section = CreateServiceSection(sectionName);
-                
-                // Find the header row (next non-dashed line with tabs)
-                int headerIndex = i + 1;
-                while (headerIndex < lines.Count && 
-                       (lines[headerIndex].StartsWith("---") || !lines[headerIndex].Contains('\t')))
-                {
-                    headerIndex++;
-                }
+                Console.WriteLine($"Row {i + 1} has {dataRow.Count} columns, expected {headers.Count}. Skipping.");
+                continue;
+            }
 
-                if (headerIndex < lines.Count)
-                {
-                    var headers = ParseTabDelimitedLine(lines[headerIndex]);
-                    section.TableHeaders = headers;
+            // Get section name from first column
+            var sectionName = dataRow[0];
+            
+            if (!sections.ContainsKey(sectionName))
+            {
+                sections[sectionName] = CreateServiceSection(sectionName);
+                // Set appropriate headers for this section type
+                sections[sectionName].TableHeaders = GetHeadersForSection(sectionName, headers);
+            }
 
-                    // Parse data rows
-                    int dataIndex = headerIndex + 1;
-                    
-                    // Skip dashed separator line
-                    if (dataIndex < lines.Count && lines[dataIndex].StartsWith("---"))
-                        dataIndex++;
-
-                    while (dataIndex < lines.Count && 
-                           lines[dataIndex].Contains('\t'))
-                    {
-                        var dataRow = ParseTabDelimitedLine(lines[dataIndex]);
-                        var resource = CreateTableResourceItem(dataRow, headers, sectionName);
-                        if (resource != null)
-                        {
-                            section.Resources.Add(resource);
-                        }
-                        dataIndex++;
-                    }
-
-                    sections.Add(section);
-                    i = dataIndex - 1; // Skip processed lines
-                }
+            var resource = CreateTableResourceItemFromCsv(dataRow, headers, sectionName);
+            if (resource != null)
+            {
+                sections[sectionName].Resources.Add(resource);
             }
         }
 
-        return sections.Any() ? sections : GetDefaultServiceSections();
+        return sections.Values.ToList();
     }
 
-    private List<string> ParseTabDelimitedLine(string line)
+    private List<string> ParseCsvLine(string line)
     {
-        return line.Split('\t', StringSplitOptions.None)
-                  .Select(cell => cell.Trim())
-                  .ToList();
+        var result = new List<string>();
+        var current = "";
+        bool inQuotes = false;
+        
+        for (int i = 0; i < line.Length; i++)
+        {
+            var c = line[i];
+            
+            if (c == '"')
+            {
+                inQuotes = !inQuotes;
+            }
+            else if (c == ',' && !inQuotes)
+            {
+                result.Add(current.Trim());
+                current = "";
+            }
+            else
+            {
+                current += c;
+            }
+        }
+        
+        result.Add(current.Trim());
+        return result;
+    }
+
+    private List<string> GetHeadersForSection(string sectionName, List<string> allHeaders)
+    {
+        // Return appropriate headers for each section type, excluding the Section column
+        var relevantHeaders = allHeaders.Skip(1).ToList();
+        
+        return sectionName.ToLower() switch
+        {
+            "api management" => new List<string> { "Service Name", "Type", "Resource Group", "Location", "Tier", "Dev Portal", "Status", "Actions" },
+            "logic apps" => new List<string> { "Service Name", "Type", "Resource Group", "Location", "Environment", "Status", "Actions" },
+            "azure functions" => new List<string> { "Service Name", "Type", "Resource Group", "Location", "Runtime", "Status", "Actions" },
+            _ => relevantHeaders
+        };
     }
 
     private ServiceTableSection CreateServiceSection(string sectionName)
@@ -148,7 +166,7 @@ public class ConfigurationService
         };
     }
 
-    private TableResourceItem? CreateTableResourceItem(List<string> dataRow, List<string> headers, string sectionName)
+    private TableResourceItem? CreateTableResourceItemFromCsv(List<string> dataRow, List<string> headers, string sectionName)
     {
         if (dataRow.Count < 2) return null;
 
@@ -158,14 +176,17 @@ public class ConfigurationService
             StatusClass = "running"
         };
 
-        // Map data to properties based on headers
-        for (int i = 0; i < Math.Min(dataRow.Count, headers.Count); i++)
+        // Map data to properties based on headers (skip the Section column at index 0)
+        for (int i = 1; i < Math.Min(dataRow.Count, headers.Count); i++)
         {
             var header = headers[i].ToLower();
             var value = dataRow[i];
 
             switch (header)
             {
+                case "section":
+                    // Skip the section column
+                    break;
                 case "service name":
                     resource.Name = ExtractServiceName(value);
                     resource.Tag = ExtractTag(value);
@@ -174,7 +195,8 @@ public class ConfigurationService
                     resource.Type = value;
                     break;
                 case "environment":
-                    resource.Tag = value.ToLower();
+                    if (!string.IsNullOrEmpty(value))
+                        resource.Tag = value.ToLower();
                     break;
                 case "resource group":
                     resource.ResourceGroup = value;
@@ -183,8 +205,12 @@ public class ConfigurationService
                     resource.Location = value;
                     break;
                 case "tier":
+                    if (!string.IsNullOrEmpty(value))
+                        resource.TierOrRuntime = value;
+                    break;
                 case "runtime":
-                    resource.TierOrRuntime = value;
+                    if (!string.IsNullOrEmpty(value))
+                        resource.TierOrRuntime = value;
                     break;
                 case "dev portal":
                     if (sectionName.Equals("API Management", StringComparison.OrdinalIgnoreCase))
