@@ -110,15 +110,13 @@ public class ConfigurationService
 
     private List<string> GetHeadersForSection(string sectionName, List<string> allHeaders)
     {
-        // Return appropriate headers for each section type, excluding the Section column
-        var relevantHeaders = allHeaders.Skip(1).ToList();
-        
+        // Return appropriate headers for each section type
         return sectionName.ToLower() switch
         {
             "api management" => new List<string> { "Service Name", "Type", "Resource Group", "Location", "Tier", "Dev Portal", "Status", "Actions" },
             "logic apps" => new List<string> { "Service Name", "Type", "Resource Group", "Location", "Environment", "Status", "Actions" },
             "azure functions" => new List<string> { "Service Name", "Type", "Resource Group", "Location", "Runtime", "Status", "Actions" },
-            _ => relevantHeaders
+            _ => new List<string> { "Service Name", "Type", "Resource Group", "Location", "Tier", "Status", "Actions" }
         };
     }
 
@@ -176,55 +174,35 @@ public class ConfigurationService
             StatusClass = "running"
         };
 
-        // Map data to properties based on headers (skip the Section column at index 0)
-        for (int i = 1; i < Math.Min(dataRow.Count, headers.Count); i++)
+        // Map CSV columns directly (assuming fixed CSV structure)
+        if (dataRow.Count >= 9)
         {
-            var header = headers[i].ToLower();
-            var value = dataRow[i];
+            // CSV structure: Section,Service Name,Type,Resource Group,Location,TierOrRuntime,ExtraColumn,Status,Tag
+            resource.Name = dataRow[1]; // Service Name
+            resource.Type = dataRow[2]; // Type
+            resource.ResourceGroup = dataRow[3]; // Resource Group
+            resource.Location = dataRow[4]; // Location
+            resource.TierOrRuntime = dataRow[5]; // TierOrRuntime
+            resource.ExtraColumn = dataRow[6]; // ExtraColumn (for Dev Portal, Environment, etc.)
+            resource.Status = dataRow[7]; // Status
+            resource.StatusClass = GetStatusClass(dataRow[7]);
+            resource.Tag = dataRow[8]; // Tag
 
-            switch (header)
+            // Set ExtraColumn based on section type for display purposes
+            if (sectionName.Equals("API Management", StringComparison.OrdinalIgnoreCase))
             {
-                case "section":
-                    // Skip the section column
-                    break;
-                case "service name":
-                    resource.Name = ExtractServiceName(value);
-                    resource.Tag = ExtractTag(value);
-                    break;
-                case "type":
-                    resource.Type = value;
-                    break;
-                case "environment":
-                    if (!string.IsNullOrEmpty(value))
-                        resource.Tag = value.ToLower();
-                    break;
-                case "resource group":
-                    resource.ResourceGroup = value;
-                    break;
-                case "location":
-                    resource.Location = value;
-                    break;
-                case "tier":
-                    if (!string.IsNullOrEmpty(value))
-                        resource.TierOrRuntime = value;
-                    break;
-                case "runtime":
-                    if (!string.IsNullOrEmpty(value))
-                        resource.TierOrRuntime = value;
-                    break;
-                case "dev portal":
-                    if (sectionName.Equals("API Management", StringComparison.OrdinalIgnoreCase))
-                    {
-                        resource.ExtraColumn = value;
-                    }
-                    break;
-                case "status":
-                    resource.Status = value;
-                    resource.StatusClass = GetStatusClass(value);
-                    break;
-                case "actions":
-                    // Actions column is handled by the UI
-                    break;
+                // For API Management, ExtraColumn is Dev Portal info - keep as is
+            }
+            else if (sectionName.Equals("Logic Apps", StringComparison.OrdinalIgnoreCase))
+            {
+                // For Logic Apps, move TierOrRuntime to ExtraColumn as Environment and clear TierOrRuntime
+                resource.ExtraColumn = resource.TierOrRuntime;
+                resource.TierOrRuntime = "";
+            }
+            else if (sectionName.Equals("Azure Functions", StringComparison.OrdinalIgnoreCase))
+            {
+                // For Azure Functions, TierOrRuntime is Runtime - keep as is, clear ExtraColumn
+                resource.ExtraColumn = "";
             }
         }
 

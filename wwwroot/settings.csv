@@ -1,10 +1,51 @@
-Section,Service Name,Type,Resource Group,Location,Tier,Dev Portal,Status,Actions,Environment,Runtime
-API Management,api-kohler-dev2 dev,API Management,GLOBAL-API-Management-DEV-rg,Central US,Developer Tier,Open Portal,Online,View,,
-API Management,api-kohler-test test,API Management,GLOBAL-API-Management-TEST-rg,East US,Developer Tier,Open Portal,Online,View,,
-API Management,api-kohler-prod prod,API Management,GLOBAL-API-Management-PROD-rg,Central US,Premium Tier,Open Portal,Online,View,,
-Logic Apps,APIM-Extension-Logic-App prod,Logic App,GLOBAL-API-Management-PROD-rg,Central US,,,Enabled,View,Production,
-Logic Apps,APIM-Extension-Logic-App dev,Logic App,GLOBAL-API-Management-DEV-rg,Central US,,,Enabled,View,Development,
-Logic Apps,APIM-Extension-Logic-App test,Logic App,GLOBAL-API-Management-TEST-rg,Central US,,,Enabled,View,Test,
-Azure Functions,apim-services-func-dev dev,Function App,global-api-management-dev-rg,Central US,,,Running,View,,.NET 6
-Azure Functions,apim-services-func-test test,Function App,global-api-management-test-rg,Central US,,,Running,View,,Python 3.9
-Azure Functions,apim-services-func-prod prod,Function App,global-api-management-prod-rg,Central US,,,Running,View,,Python 3.9
+Section,Service Name,Type,Resource Group,Location,TierOrRuntime,ExtraColumn,Status,Tag
+API Management,api-kohler-dev2,API Management,GLOBAL-API-Management-DEV-rg,Central US,Developer Tier,Open Portal,Online,dev
+API Management,api-kohler-test,API Management,GLOBAL-API-Management-TEST-rg,East US,Developer Tier,Open Portal,Online,test
+API Management,api-kohler-uat,API Management,GLOBAL-API-Management-PRE-PROD-rg,Central US,Premium Tier,Open Portal,Online,uat
+API Management,az-amer-prod-kohlerapim-apim,API Management,az-amer-prod-kohlerapim-rg,North Central US,Premium Tier,Open Portal,Online,prod
+API Management,az-amer-prod-kohlerapimdr-apim,API Management,az-amer-prod-kohlerapimdr-rg,West US,Premium Tier,Open Portal,Online,dr
+Logic Apps,APIM-Extension-Logic-App,Logic App,GLOBAL-API-Management-PROD-rg,Central US,Production,,Enabled,prod
+Logic Apps,APIM-Extension-Logic-App-Dev,Logic App,global-api-management-dev-rg,Central US,Development,,Enabled,dev
+Logic Apps,APIM-Extension-Logic-App-PreProd,Logic App,GLOBAL-API-Management-PRE-PROD-rg,Central US,PreProduction,,Enabled,uat
+Logic Apps,APIM-Extension-Logic-App-Test,Logic App,GLOBAL-API-Management-TEST-rg,Central US,Test,,Enabled,test
+Logic Apps,product-registration-test,Logic App,AMER-ECOMM-SALESFORCE-SERVICE-Test-rg,Central US,Test,,Enabled,test
+Logic Apps,product-registration-dev,Logic App,AMER-ECOMM-SALESFORCE-SERVICE-DEV-rg,Central US,Development,,Enabled,dev
+Logic Apps,salesforce-ecomm-logicapp-prod,Logic App,rg-salesforce-prod,East US,Production,,Enabled,prod
+Azure Functions,apim-services-func-dev,Function App,global-api-management-dev-rg,Central US,.NET 6,,Running,dev
+Azure Functions,apim-services-func-test,Function App,global-api-management-test-rg,Central US,Python 3.9,,Running,test
+Azure Functions,apim-services-func-uat,Function App,global-api-management-pre-prod-rg,Central US,Python 3.9,,Running,uat
+Azure Functions,apim-services-func-prod,Function App,global-api-management-prod-rg,Central US,Python 3.9,,Running,prod
+Azure Functions,asr-finder-dev,Function App,AMER-TEST-ASR-FINDER-rg,Central US,Python 3.9,,Running,dev
+Azure Functions,asr-finder-integration-qa,Function App,AMER-TEST-ASR-FINDER-rg,Central US,Python 3.9,,Running,test
+Azure Functions,asr-finder-integration-uat,Function App,AMER-TEST-ASR-FINDER-rg,Central US,Python 3.9,,Running,uat
+Azure Functions,asr-finder-integration-prod,Function App,AMER-PROD-ASR-FINDER-rg,Central US,Python 3.9,,Running,prod
+Azure Functions,commercetools-product-integrations-preprod,Function App,GLOBAL-COMMERCETOOLS-PREPROD-rg,Central US,Python 3.9,,Running,uat
+Azure Functions,commercetools-product-integrations-qa,Function App,GLOBAL-COMMERCETOOLS-TEST-rg,Central US,Python 3.9,,Running,test
+Azure Functions,ecomm-aem-funcapp-prod,Function App,global-aem-prod-rg,Central US,Python 3.9,,Running,prod
+Azure Functions,ecomm-aem-funcapp-test,Function App,global-aem-test-rg,Central US,Python 3.9,,Running,test
+Azure Functions,ecomm-aem-funcapp-uat,Function App,GLOBAL-AEM-STAGE-rg,Central US,Python 3.9,,Running,uat
+Azure Functions,ecomm-salesforce-middleware,Function App,AMER-ECOMM-SALESFORCE-SERVICE-DEV-rg,Central US,Python 3.9,,Running,dev
+Azure Functions,ecomm-salesforce-middleware-dev,Function App,AMER-ECOMM-SALESFORCE-SERVICE-DEV-rg,Central US,Python 3.9,,Running,dev
+Azure Functions,ecomm-salesforce-middleware-prod,Function App,amer-ecomm-salesforce-service-prd-rg,Central US,Python 3.9,,Running,prod
+Azure Functions,ecomm-salesforce-middleware-test,Function App,amer-ecomm-salesforce-service-test-rg,Central US,Python 3.9,,Running,test
+Function App,kohler-zip-download-service test,Function App,global-aem-test-rg,Central US,Python 3.9,,Running,View
+Key vault,apim-services-kv-dev dev,Key vault,GLOBAL-API-Management-DEV-rg,Central US,SQL API,,Online,View
+Key vault,apim-services-kv-uat uat,Key vault,GLOBAL-API-Management-PRE-PROD-rg,Central US,SQL API,,Online,View
+Key vault,vault-kohler-api-dev dev,Key vault,GLOBAL-API-Management-DEV-rg,Central US,SQL API,,Online,View
+Key vault,vault-kohler-api-test test,Key vault,GLOBAL-API-Management-TEST-rg,Central US,SQL API,,Online,View
+Key vault,vault-kohler-api-uat uat,Key vault,GLOBAL-API-Management-PRE-PROD-rg,Central US,SQL API,,Online,View
+App Insights,az-amer-prod-kohlerapim-appi prod,App Insights,az-amer-prod-kohlerapimmonitoring-rg,North Central US,App Insights,,Online,View
+App Insights,ecomm-app-insight-test test,App Insights,GLOBAL-API-Management-TEST-rg,Central US,App Insights,,Online,View
+App Insights,ecomm-apim-preprod uat,App Insights,GLOBAL-API-Management-PRE-PROD-rg,Central US,App Insights,,Online,View
+App Insights,ecomm-salesforce-middleware dev,App Insights,AMER-ECOMM-SALESFORCE-SERVICE-DEV-rg,Central US,App Insights,,Online,View
+App Insights,ecomm-salesforce-middleware-test test,App Insights,AMER-ECOMM-SALESFORCE-SERVICE-Test-rg,Central US,App Insights,,Online,View
+Cosmos DB,az-amer-dev-asrfinder-cosmos,Cosmos DB,AMER-TEST-ASR-FINDER-rg,Central US,SQL API,,Online,View
+Cosmos DB,az-amer-uat-asrfinder-cosmos,Cosmos DB,AMER-TEST-ASR-FINDER-rg,Central US,SQL API,,Online,View
+App Service,my-webapp,App Service,rg-web,East US,Node.js 18,,Running,View
+Storage Account,mystorageaccount001,Storage Account,rg-storage,East US,Standard LRS,,Active,View
+Resource Group,rg-production,Resource Group,Primary Subscription,East US,12 Resources,,Active,View
+Data Factory V2,az-amer-dev-hcm-adf,Data Factory V2,az-amer-dev-hcm-rg,Central US,V2,,Running,View
+Search Service,az-amer-prod-bloomreach-srch,Search Service,az-amer-prod-kohlersrch-rg,Central US,Basic,,Running,View
+Search Service,az-amer-prod-umbraco-srch,Search Service,az-amer-prod-kohlersrch-rg,Central US,Basic,,Running,View
+Search Service,az-amer-uat-bloomreach-srch,Search Service,az-amer-uat-kohlersrch-rg,Central US,Basic,,Running,View
+Search Service,az-amer-uat-kohler-srch,Search Service,az-amer-uat-kohlersrch-rg,Central US,Basic,,Running,View

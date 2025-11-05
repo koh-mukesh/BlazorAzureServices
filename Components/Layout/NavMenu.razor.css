@@ -69,7 +69,23 @@
         align-items: center;
         line-height: 3rem;
         width: 100%;
+        justify-content: flex-start;
+        transition: all 0.2s ease;
     }
+
+.nav-text {
+    margin-left: 0.75rem;
+    white-space: nowrap;
+}
+
+.nav-icon {
+    font-size: 1.4rem;
+    min-width: 24px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
 
 .nav-item ::deep a.active {
     background-color: rgba(255,255,255,0.37);
@@ -87,6 +103,24 @@
 
 .navbar-toggler:checked ~ .nav-scrollable {
     display: block;
+}
+
+/* Collapsed sidebar styles */
+.sidebar.collapsed .nav-text {
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.sidebar.collapsed .nav-item ::deep .nav-link {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.sidebar.collapsed .navbar-brand {
+    opacity: 0;
+    transform: translateX(-10px);
 }
 
 @media (min-width: 641px) {

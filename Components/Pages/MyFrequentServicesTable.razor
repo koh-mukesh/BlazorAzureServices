@@ -11,6 +11,9 @@
     <div class="back-nav">
         <a href="azure-services" class="back-btn">← Back to All Services</a>
         <a href="my-frequent-services" class="back-btn" style="margin-left: 10px;">📋 List View</a>
+        <button class="toggle-sidebar-btn" @onclick="ToggleSidebar">
+            @(sidebarCollapsed ? "☰ Show Sections" : "✕ Hide Sections")
+        </button>
     </div>
 
     <header>
@@ -18,29 +21,45 @@
         <p class="subtitle">Quick access to your most used Azure resources in table format</p>
     </header>
 
-    @if (isLoading)
+    @if (!sidebarCollapsed)
     {
-        <div class="loading">Loading services...</div>
-    }
-    else if (!string.IsNullOrEmpty(errorMessage))
-    {
-        <div class="error">@errorMessage</div>
-    }
-    else
-    {
-        @foreach (var serviceSection in serviceSections)
-        {
-            <div class="service-section">
-                <div class="section-title" style="cursor: pointer;" @onclick="() => ToggleSection(serviceSection.Type)">
-                    <div class="section-info">
-                        <span class="section-icon">@(serviceSection.Icon)</span>
+        <div class="sections-nav">
+            @if (serviceSections != null)
+            {
+                @foreach (var serviceSection in serviceSections)
+                {
+                    <button class="section-nav-btn @(serviceSection.IsExpanded ? "active" : "")" 
+                            @onclick="() => ToggleSection(serviceSection.Type)">
+                        <span class="section-icon">@serviceSection.Icon</span>
                         @serviceSection.Name
                         <span class="toggle-icon">@(serviceSection.IsExpanded ? "▼" : "▶")</span>
-                    </div>
-                    <button class="add-btn" @onclick="() => OpenAddModal(serviceSection.Type)" @onclick:stopPropagation="true">+ Add @serviceSection.AddButtonText</button>
+                    </button>
+                }
+            }
+        </div>
+    }
+
+        @if (isLoading)
+        {
+            <div class="loading">Loading services...</div>
+        }
+        else if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="error">@errorMessage</div>
+        }
+        else
+        {
+            @foreach (var serviceSection in serviceSections)
+            {
+                @if (serviceSection.IsExpanded)
+                {
+                <div class="service-section">
+                <div class="section-title-compact">
+                    <span class="section-icon">@serviceSection.Icon</span>
+                    @serviceSection.Name
                 </div>
-                <div class="table-container @(serviceSection.IsExpanded ? "" : "collapsed")">
-                    <table class="services-table">
+                <div class="table-container-compact">
+                    <table class="services-table-compact">
                         <thead>
                             <tr>
                                 @foreach (var header in serviceSection.TableHeaders)
@@ -52,27 +71,27 @@
                         <tbody>
                             @foreach (var resource in serviceSection.Resources)
                             {
-                                <tr @onclick="() => NavigateToResource(resource.Url)">
+                                <tr @onclick="() => NavigateToResource(resource.Url)" class="compact-row">
                                     <td>
-                                        <div class="table-service-name">
-                                            <span class="table-service-icon">@resource.Icon</span>
-                                            @resource.Name
+                                        <div class="table-service-name-compact">
+                                            <span class="table-service-icon-compact">@resource.Icon</span>
+                                            <span class="service-name-text">@resource.Name</span>
                                             @if (!string.IsNullOrEmpty(resource.Tag))
                                             {
-                                                <span class="table-tag @resource.Tag.ToLower()">@resource.Tag</span>
+                                                <span class="table-tag-compact @resource.Tag.ToLower()">@resource.Tag</span>
                                             }
                                         </div>
                                     </td>
-                                    <td>@resource.Type</td>
-                                    <td>@resource.ResourceGroup</td>
-                                    <td>@resource.Location</td>
-                                    <td>@resource.TierOrRuntime</td>
+                                    <td class="compact-cell">@resource.Type</td>
+                                    <td class="compact-cell">@resource.ResourceGroup</td>
+                                    <td class="compact-cell">@resource.Location</td>
+                                    <td class="compact-cell">@resource.TierOrRuntime</td>
                                     @if (serviceSection.ShowExtraColumn)
                                     {
-                                        <td>
+                                        <td class="compact-cell">
                                             @if (serviceSection.Type == "apimanagement" && !string.IsNullOrEmpty(resource.ExtraColumn))
                                             {
-                                                <button type="button" class="table-btn dev-portal" @onclick="() => NavigateToDevPortal(resource)" @onclick:stopPropagation="true">Open Portal</button>
+                                                <button type="button" class="table-btn-compact dev-portal" @onclick="() => NavigateToDevPortal(resource)" @onclick:stopPropagation="true">Portal</button>
                                             }
                                             else
                                             {
@@ -80,81 +99,26 @@
                                             }
                                         </td>
                                     }
-                                    <td><span class="table-status @resource.StatusClass">@resource.Status</span></td>
-                                    <td>
-                                        <div class="table-actions">
-                                            <button type="button" class="table-btn view" @onclick="() => NavigateToResource(resource.Url)" @onclick:stopPropagation="true">View</button>
-                                        </div>
+                                    <td class="compact-cell"><span class="table-status-compact @resource.StatusClass">@resource.Status</span></td>
+                                    <td class="compact-cell">
+                                        <button type="button" class="table-btn-compact view" @onclick="() => NavigateToResource(resource.Url)" @onclick:stopPropagation="true">View</button>
                                     </td>
                                 </tr>
                             }
                         </tbody>
                     </table>
                 </div>
-            </div>
+                </div>
+                }
+            }
         }
-    }
 </div>
 
-<!-- Add Resource Modal -->
-<div class="modal @(showModal ? "show" : "")" style="display: @(showModal ? "block" : "none")">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2 class="modal-title">@modalTitle</h2>
-        </div>
-        <EditForm Model="newResource" OnValidSubmit="HandleAddResource">
-            <DataAnnotationsValidator />
-            <div class="form-group">
-                <label class="form-label">Resource Name</label>
-                <InputText class="form-control" @bind-Value="newResource.Name" required />
-                <ValidationMessage For="@(() => newResource.Name)" />
-            </div>
-            <div class="form-group">
-                <label class="form-label">Resource Group</label>
-                <InputText class="form-control" @bind-Value="newResource.ResourceGroup" required />
-                <ValidationMessage For="@(() => newResource.ResourceGroup)" />
-            </div>
-            <div class="form-group">
-                <label class="form-label">Location</label>
-                <InputSelect class="form-control" @bind-Value="newResource.Location" required>
-                    <option value="">Select Location</option>
-                    <option value="East US">East US</option>
-                    <option value="West US">West US</option>
-                    <option value="Central US">Central US</option>
-                    <option value="North Europe">North Europe</option>
-                    <option value="West Europe">West Europe</option>
-                </InputSelect>
-                <ValidationMessage For="@(() => newResource.Location)" />
-            </div>
-            @if (showRuntimeField)
-            {
-                <div class="form-group">
-                    <label class="form-label">Runtime</label>
-                    <InputSelect class="form-control" @bind-Value="newResource.TierOrRuntime">
-                        <option value="">Select Runtime</option>
-                        <option value=".NET 6">.NET 6</option>
-                        <option value=".NET 8">.NET 8</option>
-                        <option value="Node.js 18">Node.js 18</option>
-                        <option value="Python 3.9">Python 3.9</option>
-                        <option value="Java 11">Java 11</option>
-                    </InputSelect>
-                </div>
-            }
-            <div class="modal-actions">
-                <button type="button" class="btn-secondary" @onclick="CloseModal">Cancel</button>
-                <button type="submit" class="btn-primary">Add Resource</button>
-            </div>
-        </EditForm>
-    </div>
-</div>
+
 
 @code {
     private List<ServiceTableSection> serviceSections = new();
-    private bool showModal = false;
-    private bool showRuntimeField = false;
-    private string modalTitle = "";
-    private string currentServiceType = "";
-    private NewResourceModel newResource = new();
+    private bool sidebarCollapsed = false;
     private bool isLoading = true;
     private string errorMessage = "";
 
@@ -169,6 +133,11 @@
         {
             isLoading = true;
             serviceSections = await ConfigurationService.LoadServiceSectionsAsync();
+            // Expand first section by default
+            if (serviceSections.Any())
+            {
+                serviceSections.First().IsExpanded = true;
+            }
         }
         catch (Exception ex)
         {
@@ -182,6 +151,12 @@
         }
     }
 
+    private void ToggleSidebar()
+    {
+        sidebarCollapsed = !sidebarCollapsed;
+        StateHasChanged();
+    }
+
     private void ToggleSection(string sectionType)
     {
         var section = serviceSections.FirstOrDefault(s => s.Type == sectionType);
@@ -190,50 +165,6 @@
             section.IsExpanded = !section.IsExpanded;
             StateHasChanged();
         }
-    }
-
-    private void OpenAddModal(string serviceType)
-    {
-        currentServiceType = serviceType;
-        var section = serviceSections.FirstOrDefault(s => s.Type == serviceType);
-        if (section != null)
-        {
-            modalTitle = $"Add New {section.AddButtonText}";
-            showRuntimeField = serviceType == "functions" || serviceType == "appservices";
-            newResource = new NewResourceModel();
-            showModal = true;
-        }
-    }
-
-    private void CloseModal()
-    {
-        showModal = false;
-        newResource = new NewResourceModel();
-    }
-
-    private void HandleAddResource()
-    {
-        var section = serviceSections.FirstOrDefault(s => s.Type == currentServiceType);
-        if (section != null)
-        {
-            var serviceConfig = GetServiceConfig(currentServiceType);
-            
-            var newResourceItem = new TableResourceItem
-            {
-                Name = newResource.Name,
-                Icon = serviceConfig.Icon,
-                Type = serviceConfig.Title,
-                ResourceGroup = newResource.ResourceGroup,
-                Location = newResource.Location,
-                TierOrRuntime = GetTierOrRuntime(currentServiceType, newResource.TierOrRuntime),
-                Status = GetDefaultStatus(currentServiceType),
-                StatusClass = "running"
-            };
-
-            section.Resources.Add(newResourceItem);
-        }
-
-        CloseModal();
     }
 
     private async Task NavigateToResource(string? url)
@@ -253,51 +184,5 @@
             var devPortalUrl = $"https://{resource.Name}.developer.azure-api.net";
             await JSRuntime.InvokeVoidAsync("window.open", devPortalUrl, "_blank");
         }
-    }
-
-    private ServiceConfig GetServiceConfig(string serviceType)
-    {
-        var configs = new Dictionary<string, ServiceConfig>
-        {
-            ["functions"] = new ServiceConfig { Title = "Function App", Icon = "⚡" },
-            ["appservices"] = new ServiceConfig { Title = "App Service", Icon = "🌐" },
-            ["storage"] = new ServiceConfig { Title = "Storage Account", Icon = "💾" },
-            ["cosmosdb"] = new ServiceConfig { Title = "Cosmos DB", Icon = "🌐" },
-            ["apimanagement"] = new ServiceConfig { Title = "API Management", Icon = "🔌" },
-            ["keyvault"] = new ServiceConfig { Title = "Key Vault", Icon = "🗝️" },
-            ["appinsights"] = new ServiceConfig { Title = "Application Insights", Icon = "📊" }
-        };
-
-        return configs.GetValueOrDefault(serviceType, new ServiceConfig { Title = "Service", Icon = "📋" });
-    }
-
-    private string GetTierOrRuntime(string serviceType, string runtime)
-    {
-        return serviceType switch
-        {
-            "functions" or "appservices" => string.IsNullOrEmpty(runtime) ? ".NET 6" : runtime,
-            "storage" => "Standard LRS",
-            "cosmosdb" => "SQL API",
-            "apimanagement" => "Developer Tier",
-            "keyvault" => "Standard",
-            "appinsights" => "App Insights",
-            _ => "Standard"
-        };
-    }
-
-    private string GetDefaultStatus(string serviceType)
-    {
-        return serviceType switch
-        {
-            "storage" => "Active",
-            "cosmosdb" or "apimanagement" or "appinsights" or "keyvault" => "Online",
-            _ => "Running"
-        };
-    }
-
-    public class ServiceConfig
-    {
-        public string Title { get; set; } = "";
-        public string Icon { get; set; } = "";
     }
 }

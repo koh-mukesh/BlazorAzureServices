@@ -1,56 +1,80 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">🌐 Azure Services Hub</a>
-    </div>
-</div>
-
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
-
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+﻿<div class="nav-scrollable">
     <nav class="flex-column">
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="oi oi-home" aria-hidden="true"></span> Home
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All" title="Home">
+                <span class="nav-icon">🏠</span>
+                @if (!IsCollapsed)
+                {
+                    <span class="nav-text">Home</span>
+                }
             </NavLink>
         </div>
         
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="azure-services">
-                <span class="oi oi-cloud" aria-hidden="true"></span> Azure Services
+            <NavLink class="nav-link" href="azure-services" title="Azure Services">
+                <span class="nav-icon">☁️</span>
+                @if (!IsCollapsed)
+                {
+                    <span class="nav-text">Azure Services</span>
+                }
             </NavLink>
         </div>
 
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="my-frequent-services">
-                <span class="oi oi-star" aria-hidden="true"></span> My Frequent Services
+            <NavLink class="nav-link" href="my-frequent-services" title="My Frequent Services">
+                <span class="nav-icon">⭐</span>
+                @if (!IsCollapsed)
+                {
+                    <span class="nav-text">My Frequent Services</span>
+                }
             </NavLink>
         </div>
 
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="my-frequent-services-table">
-                <span class="oi oi-spreadsheet" aria-hidden="true"></span> Table View
+            <NavLink class="nav-link" href="my-frequent-services-table" title="Table View">
+                <span class="nav-icon">📊</span>
+                @if (!IsCollapsed)
+                {
+                    <span class="nav-text">Table View</span>
+                }
             </NavLink>
         </div>
 
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="bitbucket-branching-diagram">
-                <span class="oi oi-fork" aria-hidden="true"></span> Branching Diagram
+            <NavLink class="nav-link" href="bitbucket-branching-diagram" title="Branching Diagram">
+                <span class="nav-icon">🌳</span>
+                @if (!IsCollapsed)
+                {
+                    <span class="nav-text">Branching Diagram</span>
+                }
             </NavLink>
         </div>
 
         <hr />
 
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="oi oi-plus" aria-hidden="true"></span> Counter
+            <NavLink class="nav-link" href="counter" title="Counter">
+                <span class="nav-icon">🔢</span>
+                @if (!IsCollapsed)
+                {
+                    <span class="nav-text">Counter</span>
+                }
             </NavLink>
         </div>
 
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> Weather
+            <NavLink class="nav-link" href="weather" title="Weather">
+                <span class="nav-icon">🌤️</span>
+                @if (!IsCollapsed)
+                {
+                    <span class="nav-text">Weather</span>
+                }
             </NavLink>
         </div>
     </nav>
 </div>
+
+@code {
+    [Parameter] public bool IsCollapsed { get; set; } = false;
+}
 
