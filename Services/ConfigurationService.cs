@@ -263,7 +263,7 @@ public class ConfigurationService
         var resourceType = sectionName.ToLower() switch
         {
             "api management" => "Microsoft.ApiManagement/service",
-            "logic apps" => "Microsoft.Logic/workflows",
+            "logic apps" => "Microsoft.Web/sites",
             "azure functions" => "Microsoft.Web/sites",
             "key vault" => "Microsoft.KeyVault/vaults",
             "application insights" => "Microsoft.Insights/components",
@@ -274,7 +274,7 @@ public class ConfigurationService
         };
 
         // Basic portal URL pattern - you may need to customize this based on your actual subscription ID
-        return $"https://portal.azure.com/#resource/subscriptions/YOUR_SUBSCRIPTION_ID/resourceGroups/{resource.ResourceGroup}/providers/{resourceType}/{resource.Name}/overview";
+        return $"https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/{resource.ResourceGroup}/providers/{resourceType}/{resource.Name}/overview";
     }
 
     private List<ServiceTableSection> GetDefaultServiceSections()

@@ -11,33 +11,12 @@
     <div class="back-nav">
         <a href="azure-services" class="back-btn">← Back to All Services</a>
         <a href="my-frequent-services" class="back-btn" style="margin-left: 10px;">📋 List View</a>
-        <button class="toggle-sidebar-btn" @onclick="ToggleSidebar">
-            @(sidebarCollapsed ? "☰ Show Sections" : "✕ Hide Sections")
-        </button>
     </div>
 
     <header>
         <h1>My Frequent Azure Services - Table View</h1>
         <p class="subtitle">Quick access to your most used Azure resources in table format</p>
     </header>
-
-    @if (!sidebarCollapsed)
-    {
-        <div class="sections-nav">
-            @if (serviceSections != null)
-            {
-                @foreach (var serviceSection in serviceSections)
-                {
-                    <button class="section-nav-btn @(serviceSection.IsExpanded ? "active" : "")" 
-                            @onclick="() => ToggleSection(serviceSection.Type)">
-                        <span class="section-icon">@serviceSection.Icon</span>
-                        @serviceSection.Name
-                        <span class="toggle-icon">@(serviceSection.IsExpanded ? "▼" : "▶")</span>
-                    </button>
-                }
-            }
-        </div>
-    }
 
         @if (isLoading)
         {
@@ -51,13 +30,18 @@
         {
             @foreach (var serviceSection in serviceSections)
             {
+                <div class="service-section">
+                    <div class="section-header-with-toggle">
+                        <button class="section-toggle-btn @(serviceSection.IsExpanded ? "expanded" : "collapsed")" 
+                                @onclick="() => ToggleSection(serviceSection.Type)">
+                            <span class="section-icon">@serviceSection.Icon</span>
+                            @serviceSection.Name
+                            <span class="toggle-icon">@(serviceSection.IsExpanded ? "▼" : "▶")</span>
+                        </button>
+                    </div>
+                    
                 @if (serviceSection.IsExpanded)
                 {
-                <div class="service-section">
-                <div class="section-title-compact">
-                    <span class="section-icon">@serviceSection.Icon</span>
-                    @serviceSection.Name
-                </div>
                 <div class="table-container-compact">
                     <table class="services-table-compact">
                         <thead>
@@ -108,8 +92,8 @@
                         </tbody>
                     </table>
                 </div>
-                </div>
                 }
+                </div>
             }
         }
 </div>
@@ -118,7 +102,6 @@
 
 @code {
     private List<ServiceTableSection> serviceSections = new();
-    private bool sidebarCollapsed = false;
     private bool isLoading = true;
     private string errorMessage = "";
 
@@ -133,10 +116,10 @@
         {
             isLoading = true;
             serviceSections = await ConfigurationService.LoadServiceSectionsAsync();
-            // Expand first section by default
-            if (serviceSections.Any())
+            // Expand all sections by default
+            foreach (var section in serviceSections)
             {
-                serviceSections.First().IsExpanded = true;
+                section.IsExpanded = true;
             }
         }
         catch (Exception ex)
@@ -149,12 +132,6 @@
             isLoading = false;
             StateHasChanged();
         }
-    }
-
-    private void ToggleSidebar()
-    {
-        sidebarCollapsed = !sidebarCollapsed;
-        StateHasChanged();
     }
 
     private void ToggleSection(string sectionType)

@@ -34,6 +34,8 @@ Key vault,apim-services-kv-uat uat,Key vault,GLOBAL-API-Management-PRE-PROD-rg,C
 Key vault,vault-kohler-api-dev dev,Key vault,GLOBAL-API-Management-DEV-rg,Central US,SQL API,,Online,View
 Key vault,vault-kohler-api-test test,Key vault,GLOBAL-API-Management-TEST-rg,Central US,SQL API,,Online,View
 Key vault,vault-kohler-api-uat uat,Key vault,GLOBAL-API-Management-PRE-PROD-rg,Central US,SQL API,,Online,View
+Key vault,azamerprodkohlerapimkv,Key vault,az-amer-prod-kohlerapim-rg,North Central US,Standard,,Online,View
+Key vault,azamerprodkohlerapimkv01,Key vault,az-amer-prod-kohlerapim-rg,North Central US,Standard,,Online,View
 App Insights,az-amer-prod-kohlerapim-appi prod,App Insights,az-amer-prod-kohlerapimmonitoring-rg,North Central US,App Insights,,Online,View
 App Insights,ecomm-app-insight-test test,App Insights,GLOBAL-API-Management-TEST-rg,Central US,App Insights,,Online,View
 App Insights,ecomm-apim-preprod uat,App Insights,GLOBAL-API-Management-PRE-PROD-rg,Central US,App Insights,,Online,View
