@@ -28,33 +28,26 @@ Azure Functions,ecomm-salesforce-middleware,Function App,AMER-ECOMM-SALESFORCE-S
 Azure Functions,ecomm-salesforce-middleware-dev,Function App,AMER-ECOMM-SALESFORCE-SERVICE-DEV-rg,Central US,Python 3.9,,Running,dev
 Azure Functions,ecomm-salesforce-middleware-prod,Function App,amer-ecomm-salesforce-service-prd-rg,Central US,Python 3.9,,Running,prod
 Azure Functions,ecomm-salesforce-middleware-test,Function App,amer-ecomm-salesforce-service-test-rg,Central US,Python 3.9,,Running,test
-Function App,kohler-zip-download-service,Function App,global-aem-test-rg,Central US,Python 3.9,,Running,test
-Key vault,apim-services-kv-dev,Key vault,GLOBAL-API-Management-DEV-rg,Central US,SQL API,,Online,dev
-Key vault,apim-services-kv-uat,Key vault,GLOBAL-API-Management-PRE-PROD-rg,Central US,SQL API,,Online,uat
-Key vault,vault-kohler-api-dev,Key vault,GLOBAL-API-Management-DEV-rg,Central US,SQL API,,Online,dev
-Key vault,vault-kohler-api-test,Key vault,GLOBAL-API-Management-TEST-rg,Central US,SQL API,,Online,test
-Key vault,vault-kohler-api-uat,Key vault,GLOBAL-API-Management-PRE-PROD-rg,Central US,SQL API,,Online,uat
-Key vault,azamerprodkohlerapimkv,Key vault,az-amer-prod-kohlerapim-rg,North Central US,Standard,,Online,prod
-Key vault,azamerprodkohlerapimkv01,Key vault,az-amer-prod-kohlerapim-rg,North Central US,Standard,,Online,prod
-App Insights,az-amer-prod-kohlerapim-appi,App Insights,az-amer-prod-kohlerapimmonitoring-rg,North Central US,App Insights,,Online,prod
-App Insights,ecomm-app-insight-test,App Insights,GLOBAL-API-Management-TEST-rg,Central US,App Insights,,Online,test
-App Insights,ecomm-apim-preprod,App Insights,GLOBAL-API-Management-PRE-PROD-rg,Central US,App Insights,,Online,uat
-App Insights,ecomm-salesforce-middleware,App Insights,AMER-ECOMM-SALESFORCE-SERVICE-DEV-rg,Central US,App Insights,,Online,dev
-App Insights,ecomm-salesforce-middleware-test,App Insights,AMER-ECOMM-SALESFORCE-SERVICE-Test-rg,Central US,App Insights,,Online,test
-Cosmos DB,az-amer-dev-asrfinder-cosmos,Cosmos DB,AMER-TEST-ASR-FINDER-rg,Central US,SQL API,,Online,dev
-Cosmos DB,az-amer-uat-asrfinder-cosmos,Cosmos DB,AMER-TEST-ASR-FINDER-rg,Central US,SQL API,,Online,uat
-App Service,az-amer-uat-kohlersearch-app,App Service,az-amer-uat-kohlersrch-rg,Central US,Linux,,Running,uat
-App Service,kohler-azuresearch-prod,App Service,az-amer-prod-kohlersrch-rg,Central US,Linux,,Running,prod
-Storage Account,azdevgenkohlerindiast,Storage Account,az-apac-dev-ctindia-rg,centralindia,,,Active,dev
-Storage Account,azqagenkohlerindiast,Storage Account,az-apac-qa-ctindia-rg,centralindia,,,Active,test
-Storage Account,azuatgenkohlerindiast,Storage Account,az-apac-uat-ctindia-rg,centralindia,,,Active,uat
-Storage Account,azameruatkohlersearch01,Storage Account,az-amer-uat-kohlersrch-rg,Central US,,,Active,uat
-Storage Account,azamerprodkohlersearch,Storage Account,az-amer-prod-kohlersrch-rg,Central US,,,Active,prod
-Resource Group,az-amer-prod-kohlersrch-rg,Resource Group,Primary Subscription,Central US ,11 Resources,,Active,prod
-Resource Group,az-amer-uat-kohlersrch-rg,Resource Group,Primary Subscription,Central US ,64 Resources,,Active,uat
-Resource Group,AMER-ECOMM-SALESFORCE-SERVICE-DEV-rg,Resource Group,Primary Subscription,Central US ,20 Resources,,Active,dev
-Data Factory V2,az-amer-dev-hcm-adf,Data Factory V2,az-amer-dev-hcm-rg,Central US,V2,,Running,dev
-Search Service,az-amer-prod-bloomreach-srch,Search Service,az-amer-prod-kohlersrch-rg,Central US,Basic,,Running,prod
-Search Service,az-amer-prod-umbraco-srch,Search Service,az-amer-prod-kohlersrch-rg,Central US,Basic,,Running,prod
-Search Service,az-amer-uat-bloomreach-srch,Search Service,az-amer-uat-kohlersrch-rg,Central US,Basic,,Running,uat
-Search Service,az-amer-uat-kohler-srch,Search Service,az-amer-uat-kohlersrch-rg,Central US,Basic,,Running,uat
+Function App,kohler-zip-download-service test,Function App,global-aem-test-rg,Central US,Python 3.9,,Running,View
+Key vault,apim-services-kv-dev dev,Key vault,GLOBAL-API-Management-DEV-rg,Central US,SQL API,,Online,View
+Key vault,apim-services-kv-uat uat,Key vault,GLOBAL-API-Management-PRE-PROD-rg,Central US,SQL API,,Online,View
+Key vault,vault-kohler-api-dev dev,Key vault,GLOBAL-API-Management-DEV-rg,Central US,SQL API,,Online,View
+Key vault,vault-kohler-api-test test,Key vault,GLOBAL-API-Management-TEST-rg,Central US,SQL API,,Online,View
+Key vault,vault-kohler-api-uat uat,Key vault,GLOBAL-API-Management-PRE-PROD-rg,Central US,SQL API,,Online,View
+Key vault,azamerprodkohlerapimkv,Key vault,az-amer-prod-kohlerapim-rg,North Central US,Standard,,Online,View
+Key vault,azamerprodkohlerapimkv01,Key vault,az-amer-prod-kohlerapim-rg,North Central US,Standard,,Online,View
+App Insights,az-amer-prod-kohlerapim-appi prod,App Insights,az-amer-prod-kohlerapimmonitoring-rg,North Central US,App Insights,,Online,View
+App Insights,ecomm-app-insight-test test,App Insights,GLOBAL-API-Management-TEST-rg,Central US,App Insights,,Online,View
+App Insights,ecomm-apim-preprod uat,App Insights,GLOBAL-API-Management-PRE-PROD-rg,Central US,App Insights,,Online,View
+App Insights,ecomm-salesforce-middleware dev,App Insights,AMER-ECOMM-SALESFORCE-SERVICE-DEV-rg,Central US,App Insights,,Online,View
+App Insights,ecomm-salesforce-middleware-test test,App Insights,AMER-ECOMM-SALESFORCE-SERVICE-Test-rg,Central US,App Insights,,Online,View
+Cosmos DB,az-amer-dev-asrfinder-cosmos,Cosmos DB,AMER-TEST-ASR-FINDER-rg,Central US,SQL API,,Online,View
+Cosmos DB,az-amer-uat-asrfinder-cosmos,Cosmos DB,AMER-TEST-ASR-FINDER-rg,Central US,SQL API,,Online,View
+App Service,my-webapp,App Service,rg-web,East US,Node.js 18,,Running,View
+Storage Account,mystorageaccount001,Storage Account,rg-storage,East US,Standard LRS,,Active,View
+Resource Group,rg-production,Resource Group,Primary Subscription,East US,12 Resources,,Active,View
+Data Factory V2,az-amer-dev-hcm-adf,Data Factory V2,az-amer-dev-hcm-rg,Central US,V2,,Running,View
+Search Service,az-amer-prod-bloomreach-srch,Search Service,az-amer-prod-kohlersrch-rg,Central US,Basic,,Running,View
+Search Service,az-amer-prod-umbraco-srch,Search Service,az-amer-prod-kohlersrch-rg,Central US,Basic,,Running,View
+Search Service,az-amer-uat-bloomreach-srch,Search Service,az-amer-uat-kohlersrch-rg,Central US,Basic,,Running,View
+Search Service,az-amer-uat-kohler-srch,Search Service,az-amer-uat-kohlersrch-rg,Central US,Basic,,Running,View

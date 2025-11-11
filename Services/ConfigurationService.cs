@@ -5,6 +5,12 @@ namespace BlazorAzureServices.Services;
 public class ConfigurationService
 {
     private readonly HttpClient _httpClient;
+    
+    // Azure subscription configuration
+    // TODO: Move these to appsettings.json or environment variables for better configuration management
+    private const string DefaultSubscriptionId = "35166c0d-3c12-4f4c-8638-79d7248ae93f";
+    private const string DataFactorySubscriptionId = "e4e37c2d-09d5-4584-9b5b-e4d389d8cd1b"; // TODO: Update this with actual Data Factory subscription ID
+    private const string AzureTenantDomain = "mykohler.onmicrosoft.com";
 
     public ConfigurationService(HttpClient httpClient)
     {
@@ -15,16 +21,35 @@ public class ConfigurationService
     {
         try
         {
+            Console.WriteLine("=== [DEBUG] LoadServiceSectionsAsync STARTED ===");
             Console.WriteLine("Loading configuration from settings.csv...");
             var configContent = await _httpClient.GetStringAsync("settings.csv");
             Console.WriteLine($"Configuration loaded, content length: {configContent.Length}");
+            
+            // Show first few lines of CSV content for debugging
+            var lines = configContent.Split('\n').Take(5).ToArray();
+            Console.WriteLine("First 5 lines of CSV:");
+            for (int i = 0; i < lines.Length; i++)
+            {
+                Console.WriteLine($"  Line {i}: '{lines[i]}'");
+            }
+            
             var sections = ParseCsvConfigurationContent(configContent);
             Console.WriteLine($"Parsed {sections.Count} sections");
+            
+            foreach (var section in sections)
+            {
+                Console.WriteLine($"Section: {section.Name} - {section.Resources.Count} resources");
+            }
+            
+            Console.WriteLine("=== [DEBUG] LoadServiceSectionsAsync COMPLETED ===");
             return sections;
         }
         catch (Exception ex)
         {
+            Console.WriteLine($"=== [ERROR] LoadServiceSectionsAsync FAILED ===");
             Console.WriteLine($"Error loading configuration: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
             return GetDefaultServiceSections();
         }
     }
@@ -166,7 +191,16 @@ public class ConfigurationService
 
     private TableResourceItem? CreateTableResourceItemFromCsv(List<string> dataRow, List<string> headers, string sectionName)
     {
-        if (dataRow.Count < 2) return null;
+        Console.WriteLine($"[DEBUG] CreateTableResourceItemFromCsv called:");
+        Console.WriteLine($"  - Section Name: '{sectionName}'");
+        Console.WriteLine($"  - Data Row Count: {dataRow.Count}");
+        Console.WriteLine($"  - Headers Count: {headers.Count}");
+        
+        if (dataRow.Count < 2) 
+        {
+            Console.WriteLine($"[WARNING] Data row has less than 2 columns, skipping");
+            return null;
+        }
 
         var resource = new TableResourceItem
         {
@@ -177,6 +211,12 @@ public class ConfigurationService
         // Map CSV columns directly (assuming fixed CSV structure)
         if (dataRow.Count >= 9)
         {
+            Console.WriteLine($"[DEBUG] Processing CSV row with {dataRow.Count} columns:");
+            for (int i = 0; i < dataRow.Count && i < 9; i++)
+            {
+                Console.WriteLine($"  - Column {i}: '{dataRow[i]}'");
+            }
+            
             // CSV structure: Section,Service Name,Type,Resource Group,Location,TierOrRuntime,ExtraColumn,Status,Tag
             resource.Name = dataRow[1]; // Service Name
             resource.Type = dataRow[2]; // Type
@@ -188,25 +228,45 @@ public class ConfigurationService
             resource.StatusClass = GetStatusClass(dataRow[7]);
             resource.Tag = dataRow[8]; // Tag
 
+            Console.WriteLine($"[DEBUG] Mapped resource:");
+            Console.WriteLine($"  - Name: '{resource.Name}'");
+            Console.WriteLine($"  - Type: '{resource.Type}'");
+            Console.WriteLine($"  - Resource Group: '{resource.ResourceGroup}'");
+            Console.WriteLine($"  - Location: '{resource.Location}'");
+            Console.WriteLine($"  - Status: '{resource.Status}'");
+            Console.WriteLine($"  - Tag: '{resource.Tag}'");
+
             // Set ExtraColumn based on section type for display purposes
             if (sectionName.Equals("API Management", StringComparison.OrdinalIgnoreCase))
             {
+                Console.WriteLine($"[DEBUG] Processing API Management section");
                 // For API Management, ExtraColumn is Dev Portal info - keep as is
             }
             else if (sectionName.Equals("Logic Apps", StringComparison.OrdinalIgnoreCase))
             {
+                Console.WriteLine($"[DEBUG] Processing Logic Apps section");
                 // For Logic Apps, move TierOrRuntime to ExtraColumn as Environment and clear TierOrRuntime
                 resource.ExtraColumn = resource.TierOrRuntime;
                 resource.TierOrRuntime = "";
             }
             else if (sectionName.Equals("Azure Functions", StringComparison.OrdinalIgnoreCase))
             {
+                Console.WriteLine($"[DEBUG] Processing Azure Functions section");
                 // For Azure Functions, TierOrRuntime is Runtime - keep as is, clear ExtraColumn
                 resource.ExtraColumn = "";
             }
+            else
+            {
+                Console.WriteLine($"[DEBUG] Processing other section: '{sectionName}'");
+            }
+        }
+        else
+        {
+            Console.WriteLine($"[WARNING] Data row has only {dataRow.Count} columns, expected at least 9");
         }
 
         // Generate URL for Azure Portal (basic pattern)
+        Console.WriteLine($"[DEBUG] Generating Azure Portal URL...");
         resource.Url = GenerateAzurePortalUrl(resource, sectionName);
 
         return resource;
@@ -259,22 +319,114 @@ public class ConfigurationService
 
     private string GenerateAzurePortalUrl(TableResourceItem resource, string sectionName)
     {
-        // This is a basic URL pattern - in a real implementation, you'd need proper resource IDs
-        var resourceType = sectionName.ToLower() switch
+        try
         {
-            "api management" => "Microsoft.ApiManagement/service",
-            "logic apps" => "Microsoft.Web/sites",
-            "azure functions" => "Microsoft.Web/sites",
-            "key vault" => "Microsoft.KeyVault/vaults",
-            "application insights" => "Microsoft.Insights/components",
-            "cosmos db" => "Microsoft.DocumentDB/databaseAccounts",
-            "app services" => "Microsoft.Web/sites",
-            "storage" => "Microsoft.Storage/storageAccounts",
-            _ => "Microsoft.Resources/resourceGroups"
-        };
+            Console.WriteLine($"[DEBUG] GenerateAzurePortalUrl called:");
+            Console.WriteLine($"  - Resource Name: '{resource?.Name ?? "NULL"}'");
+            Console.WriteLine($"  - Resource Group: '{resource?.ResourceGroup ?? "NULL"}'");
+            Console.WriteLine($"  - Section Name: '{sectionName ?? "NULL"}'");
+            
+            // Validate inputs
+            if (resource == null)
+            {
+                Console.WriteLine($"[ERROR] Resource is null");
+                return "#";
+            }
+            
+            if (string.IsNullOrWhiteSpace(resource.Name))
+            {
+                Console.WriteLine($"[ERROR] Resource name is null or empty");
+                return "#";
+            }
+            
+            if (string.IsNullOrWhiteSpace(resource.ResourceGroup))
+            {
+                Console.WriteLine($"[ERROR] Resource group is null or empty");
+                return "#";
+            }
+            
+            if (string.IsNullOrWhiteSpace(sectionName))
+            {
+                Console.WriteLine($"[ERROR] Section name is null or empty");
+                return "#";
+            }
 
-        // Basic portal URL pattern - you may need to customize this based on your actual subscription ID
-        return $"https://portal.azure.com/#@mykohler.onmicrosoft.com/resource/subscriptions/35166c0d-3c12-4f4c-8638-79d7248ae93f/resourceGroups/{resource.ResourceGroup}/providers/{resourceType}/{resource.Name}/overview";
+            // Get resource type mapping
+            var sectionLower = sectionName.ToLower();
+            Console.WriteLine($"  - Section Name (lowercase): '{sectionLower}'");
+            
+            var resourceType = sectionLower switch
+            {
+                "api management" => "Microsoft.ApiManagement/service",
+                "logic apps" => "Microsoft.Logic/workflows",
+                "azure functions" => "Microsoft.Web/sites",
+                "function app" => "Microsoft.Web/sites",
+                "key vault" => "Microsoft.KeyVault/vaults",
+                "app insights" => "Microsoft.Insights/components",
+                "application insights" => "Microsoft.Insights/components",
+                "cosmos db" => "Microsoft.DocumentDB/databaseAccounts",
+                "app service" => "Microsoft.Web/sites",
+                "app services" => "Microsoft.Web/sites",
+                "storage account" => "Microsoft.Storage/storageAccounts",
+                "storage" => "Microsoft.Storage/storageAccounts",
+                "resource group" => "Microsoft.Resources/resourceGroups",
+                "data factory v2" => "Microsoft.DataFactory/factories",
+                "search service" => "Microsoft.Search/searchServices",
+                _ => "Microsoft.Resources/resourceGroups"
+            };
+            
+            Console.WriteLine($"  - Mapped Resource Type: '{resourceType}'");
+            
+            // Clean resource name (remove spaces and special characters that might cause URL issues)
+            var cleanResourceName = resource.Name.Trim();
+            var cleanResourceGroup = resource.ResourceGroup.Trim();
+            
+            Console.WriteLine($"  - Clean Resource Name: '{cleanResourceName}'");
+            Console.WriteLine($"  - Clean Resource Group: '{cleanResourceGroup}'");
+
+            // Get subscription ID based on service type
+            var subscriptionId = GetSubscriptionIdForService(sectionLower, cleanResourceGroup);
+            Console.WriteLine($"  - Subscription ID: '{subscriptionId}'");
+
+            // Generate the Azure portal URL
+            var portalUrl = $"https://portal.azure.com/#@{AzureTenantDomain}/resource/subscriptions/{subscriptionId}/resourceGroups/{cleanResourceGroup}/providers/{resourceType}/{cleanResourceName}/overview";
+            
+            Console.WriteLine($"  - Generated URL: '{portalUrl}'");
+            Console.WriteLine($"[DEBUG] GenerateAzurePortalUrl completed successfully");
+            
+            return portalUrl;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR] Exception in GenerateAzurePortalUrl: {ex.Message}");
+            Console.WriteLine($"[ERROR] Stack trace: {ex.StackTrace}");
+            return "#";
+        }
+    }
+
+    private string GetSubscriptionIdForService(string sectionName, string resourceGroup)
+    {
+        Console.WriteLine($"[DEBUG] GetSubscriptionIdForService called for section: '{sectionName}', resource group: '{resourceGroup}'");
+        
+        // Check if this is a Data Factory service
+        if (sectionName.Contains("data factory"))
+        {
+            Console.WriteLine($"[DEBUG] Using Data Factory subscription ID: {DataFactorySubscriptionId}");
+            return DataFactorySubscriptionId;
+        }
+        
+        // Check by resource group patterns for Data Factory
+        if (resourceGroup.ToLower().Contains("hcm") || 
+            resourceGroup.ToLower().Contains("datafactory") || 
+            resourceGroup.ToLower().Contains("adf"))
+        {
+            Console.WriteLine($"[DEBUG] Detected Data Factory resource group pattern, using Data Factory subscription ID: {DataFactorySubscriptionId}");
+            return DataFactorySubscriptionId;
+        }
+        
+        // For all other services, use default subscription
+        Console.WriteLine($"[DEBUG] Using default subscription ID: {DefaultSubscriptionId}");
+        return DefaultSubscriptionId;
     }
 
     private List<ServiceTableSection> GetDefaultServiceSections()
