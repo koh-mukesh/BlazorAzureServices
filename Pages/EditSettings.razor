@@ -72,8 +72,12 @@ else
                 💾 Save Changes
             </button>
             
-            <button type="button" class="btn btn-info" onclick="location.reload()">
-                🔄 Reload Data
+            <button type="button" class="btn btn-info" onclick="forceReloadData()">
+                🔄 Force Reload Latest
+            </button>
+            
+            <button type="button" class="btn btn-secondary" onclick="clearBrowserCache()">
+                🧹 Clear Cache
             </button>
         </div>
         
@@ -237,6 +241,71 @@ function extractTableData() {
     return rows.join('\n');
 }
 
+// Force reload data with cache busting
+window.forceReloadData = function() {
+    try {
+        showMessage('🔄 Force reloading latest data...', 'info');
+        
+        // Clear any cached CSV data
+        if ('caches' in window) {
+            caches.keys().then(names => {
+                names.forEach(name => {
+                    caches.delete(name);
+                });
+            });
+        }
+        
+        // Reload the page with cache busting
+        const currentUrl = new URL(window.location);
+        currentUrl.searchParams.set('_reload', Date.now());
+        window.location.href = currentUrl.toString();
+        
+    } catch (error) {
+        console.error('Error force reloading:', error);
+        location.reload(true); // Fallback to hard reload
+    }
+};
+
+// Clear browser cache for CSV files
+window.clearBrowserCache = function() {
+    try {
+        showMessage('🧹 Clearing browser cache...', 'info');
+        
+        // Clear service worker caches
+        if ('caches' in window) {
+            caches.keys().then(cacheNames => {
+                return Promise.all(
+                    cacheNames.map(cacheName => {
+                        console.log('Deleting cache:', cacheName);
+                        return caches.delete(cacheName);
+                    })
+                );
+            }).then(() => {
+                showMessage('✅ Browser cache cleared successfully!', 'success');
+            });
+        }
+        
+        // Clear localStorage backups
+        const keys = Object.keys(localStorage);
+        keys.forEach(key => {
+            if (key.startsWith('csv-backup-')) {
+                localStorage.removeItem(key);
+            }
+        });
+        
+        // Clear sessionStorage
+        sessionStorage.clear();
+        
+        setTimeout(() => {
+            showMessage('ℹ️ Click "Force Reload Latest" to get fresh data', 'info');
+        }, 2000);
+        
+    } catch (error) {
+        console.error('Error clearing cache:', error);
+        showMessage('❌ Cache clear error: ' + error.message, 'danger');
+    }
+};
+
 // Show status messages
 function showMessage(message, type) {
     let messageContainer = document.querySelector('.status-messages');
@@ -299,25 +368,33 @@ function showMessage(message, type) {
     {
         try
         {
-            saveMessage = "Fetching CSV file...";
+            saveMessage = "Fetching latest CSV file...";
             await InvokeAsync(StateHasChanged);
             
-            var response = await Http.GetAsync("settings.csv");
+            // Create request with proper cache-busting parameters only
+            var cacheBuster = DateTime.Now.Ticks;
+            var request = new HttpRequestMessage(HttpMethod.Get, $"settings.csv?v={cacheBuster}");
+            
+            // Only set valid request headers for cache-busting
+            request.Headers.Add("Cache-Control", "no-cache");
+            request.Headers.Add("Pragma", "no-cache");
+            
+            var response = await Http.SendAsync(request);
             
             if (response.IsSuccessStatusCode)
             {
                 var csvContent = await response.Content.ReadAsStringAsync();
                 csvRows = ParseCsvContent(csvContent);
-                saveMessage = $"CSV loaded successfully! ({csvRows.Count - 1} data rows)";
+                saveMessage = $"✅ Latest CSV loaded! ({csvRows.Count - 1} data rows) - {DateTime.Now:HH:mm:ss}";
             }
             else  
             {
-                saveMessage = $"Could not load CSV file (Status: {response.StatusCode})";
+                saveMessage = $"❌ Could not load CSV file (Status: {response.StatusCode})";
             }
         }
         catch (Exception ex)
         {
-            saveMessage = $"Error loading CSV: {ex.Message}";
+            saveMessage = $"❌ Error loading CSV: {ex.Message}";
         }
         
         await InvokeAsync(StateHasChanged);
