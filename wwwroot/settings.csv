@@ -59,3 +59,4 @@ Search Service,az-amer-prod-umbraco-srch,Search Service,az-amer-prod-kohlersrch-
 Search Service,az-amer-uat-bloomreach-srch,Search Service,az-amer-uat-kohlersrch-rg,Central US,Basic,,Running,uat
 Search Service,az-amer-uat-kohler-srch,Search Service,az-amer-uat-kohlersrch-rg,Central US,Basic,,Running,uat
 Data Factory V2,az-amer-prod-sdmp-adf,Data Factory V2,az-amer-prod-sdmp-rg,East US,,,Running,prod
+Data Factory V2,az-amer-test-sdmp-adf,Data Factory V2,az-amer-test-sdmp-rg,East US,,,Running,test
