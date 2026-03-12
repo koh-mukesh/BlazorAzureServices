@@ -24,6 +24,58 @@
                 window.history.replaceState(null, null, '/BlazorAzureServices' + route);
             }
         })();
+
+        // Function to download files
+        window.downloadFile = function(filename, contentType, data) {
+            // Create a blob from the data
+            const blob = new Blob([data], { type: contentType });
+            
+            // Create a temporary URL for the blob
+            const url = window.URL.createObjectURL(blob);
+            
+            // Create a temporary anchor element and trigger download
+            const anchor = document.createElement('a');
+            anchor.href = url;
+            anchor.download = filename;
+            document.body.appendChild(anchor);
+            anchor.click();
+            
+            // Clean up
+            document.body.removeChild(anchor);
+            window.URL.revokeObjectURL(url);
+        };
+
+        // Function to download files from base64 data
+        window.downloadFileFromBase64 = function(filename, contentType, base64Data) {
+            try {
+                // Convert base64 to bytes
+                const byteCharacters = atob(base64Data);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                
+                // Create a blob from the byte array
+                const blob = new Blob([byteArray], { type: contentType });
+                
+                // Create a temporary URL for the blob
+                const url = window.URL.createObjectURL(blob);
+                
+                // Create a temporary anchor element and trigger download
+                const anchor = document.createElement('a');
+                anchor.href = url;
+                anchor.download = filename;
+                document.body.appendChild(anchor);
+                anchor.click();
+                
+                // Clean up
+                document.body.removeChild(anchor);
+                window.URL.revokeObjectURL(url);
+            } catch (error) {
+                console.error('Error downloading file:', error);
+            }
+        };
     </script>
     <style>
         .loading-progress {
@@ -95,7 +147,53 @@
         <a class="dismiss">🗙</a>
     </div>
     
-    <script src="_framework/blazor.webassembly.js"></script>
+    <script src="_framework/blazor.webassembly.js" autostart="false"></script>
+    <script>
+        console.log('=== Blazor Startup Monitoring ===');
+        
+        // Monitor Blazor startup
+        Blazor.start().then(() => {
+            console.log('✅ Blazor started successfully');
+            window.blazorLoaded = true;
+        }).catch(error => {
+            console.error('❌ Blazor failed to start:', error);
+            window.blazorError = error;
+        });
+        
+        window.downloadFile = (filename, contentType, data) => {
+            try {
+                console.log('downloadFile called with:', filename, contentType, data.length);
+                
+                if (!data || data.length === 0) {
+                    console.error('No data provided for download');
+                    return;
+                }
+                
+                const blob = new Blob([new Uint8Array(data)], { type: contentType });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = filename;
+                
+                // Append to body, click, then remove
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // Clean up the URL object
+                setTimeout(() => URL.revokeObjectURL(url), 100);
+                
+                console.log('Download initiated successfully');
+            } catch (error) {
+                console.error('Error in downloadFile:', error);
+            }
+        };
+        
+        // Add error handler for global errors
+        window.addEventListener('error', function(e) {
+            console.error('Global error:', e.error);
+        });
+    </script>
 </body>
 
 </html>

@@ -50,11 +50,12 @@ Storage Account,azqagenkohlerindiast,Storage Account,az-apac-qa-ctindia-rg,centr
 Storage Account,azuatgenkohlerindiast,Storage Account,az-apac-uat-ctindia-rg,centralindia,,,Active,uat
 Storage Account,azameruatkohlersearch01,Storage Account,az-amer-uat-kohlersrch-rg,Central US,,,Active,uat
 Storage Account,azamerprodkohlersearch,Storage Account,az-amer-prod-kohlersrch-rg,Central US,,,Active,prod
-Resource Group,az-amer-prod-kohlersrch-rg,Resource Group,Primary Subscription,Central US ,11 Resources,,Active,prod
-Resource Group,az-amer-uat-kohlersrch-rg,Resource Group,Primary Subscription,Central US ,64 Resources,,Active,uat
-Resource Group,AMER-ECOMM-SALESFORCE-SERVICE-DEV-rg,Resource Group,Primary Subscription,Central US ,20 Resources,,Active,dev
+Resource Group,az-amer-prod-kohlersrch-rg,Resource Group,Primary Subscription,Central US,11 Resources,,Active,prod
+Resource Group,az-amer-uat-kohlersrch-rg,Resource Group,Primary Subscription,Central US,64 Resources,,Active,uat
+Resource Group,AMER-ECOMM-SALESFORCE-SERVICE-DEV-rg,Resource Group,Primary Subscription,Central US,20 Resources,,Active,dev
 Data Factory V2,az-amer-dev-hcm-adf,Data Factory V2,az-amer-dev-hcm-rg,Central US,V2,,Running,dev
 Search Service,az-amer-prod-bloomreach-srch,Search Service,az-amer-prod-kohlersrch-rg,Central US,Basic,,Running,prod
 Search Service,az-amer-prod-umbraco-srch,Search Service,az-amer-prod-kohlersrch-rg,Central US,Basic,,Running,prod
 Search Service,az-amer-uat-bloomreach-srch,Search Service,az-amer-uat-kohlersrch-rg,Central US,Basic,,Running,uat
 Search Service,az-amer-uat-kohler-srch,Search Service,az-amer-uat-kohlersrch-rg,Central US,Basic,,Running,uat
+Data Factory V2,az-amer-prod-sdmp-adf,Data Factory V2,az-amer-prod-sdmp-rg,East US,,,Running,prod
