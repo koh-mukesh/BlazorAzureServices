@@ -52,6 +52,7 @@ Storage Account,azqagenkohlerindiast,Storage Account,az-apac-qa-ctindia-rg,centr
 Storage Account,azuatgenkohlerindiast,Storage Account,az-apac-uat-ctindia-rg,centralindia,,,Active,uat
 Storage Account,azameruatkohlersearch01,Storage Account,az-amer-uat-kohlersrch-rg,Central US,,,Active,uat
 Storage Account,azamerprodkohlersearch,Storage Account,az-amer-prod-kohlersrch-rg,Central US,,,Active,prod
+Storage Account,azamerdevhcmst,Storage Account,az-amer-dev-hcm-rg,Central US,,,Active,dev
 Resource Group,az-amer-prod-kohlersrch-rg,Resource Group,Primary Subscription,Central US,11 Resources,,Active,prod
 Resource Group,az-amer-uat-kohlersrch-rg,Resource Group,Primary Subscription,Central US,64 Resources,,Active,uat
 Resource Group,AMER-ECOMM-SALESFORCE-SERVICE-DEV-rg,Resource Group,Primary Subscription,Central US,20 Resources,,Active,dev
