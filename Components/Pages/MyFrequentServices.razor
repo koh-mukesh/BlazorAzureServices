@@ -5,17 +5,14 @@
 <PageTitle>My Frequent Azure Services</PageTitle>
 
 <div class="container">
-    <div class="back-nav">
-        <a href="azure-services" class="back-btn">← Back to All Services</a>
-        <a href="my-frequent-services-table" class="back-btn" style="margin-left: 10px;">📊 Table View</a>
+    <div class="single-line-header">
+        <a href="azure-services" class="back-btn">← Back To All Services</a>
+        <a href="my-frequent-services-table" class="back-btn">📋 List View</a>
+        <h1 class="inline-title">My Frequent Azure Services</h1>
+        <input type="text" @bind="searchQuery" @oninput="OnSearchInput" placeholder="Search" class="search-input" />
     </div>
 
-    <header>
-        <h1>My Frequent Azure Services</h1>
-        <p class="subtitle">Quick access to your most used Azure resources</p>
-    </header>
-
-    @foreach (var section in serviceSections)
+    @foreach (var section in filteredServiceSections)
     {
         <div class="service-section">
             <div class="section-title">
@@ -106,7 +103,7 @@
             {
                 <div class="form-group">
                     <label class="form-label" for="runtime">Runtime</label>
-                    <InputSelect class="form-control" @bind-Value="newResource.Runtime">
+                    <InputSelect class="form-control" @bind-Value="newResource.TierOrRuntime">
                         <option value=".NET 6">.NET 6</option>
                         <option value="Python 3.9">Python 3.9</option>
                         <option value="Node.js 18">Node.js 18</option>
@@ -124,15 +121,48 @@
 
 @code {
     private List<ServiceSection> serviceSections = new();
+    private List<ServiceSection> filteredServiceSections = new();
     private bool showModal = false;
     private bool showRuntimeField = false;
     private string modalTitle = "";
     private string currentServiceType = "";
     private NewResourceModel newResource = new();
+    private string searchQuery = string.Empty;
 
     protected override void OnInitialized()
     {
         InitializeServiceSections();
+        filteredServiceSections = serviceSections;
+    }
+
+    private void OnSearchInput(ChangeEventArgs e)
+    {
+        searchQuery = e.Value?.ToString() ?? string.Empty;
+        FilterServices();
+    }
+
+    private void FilterServices()
+    {
+        if (string.IsNullOrEmpty(searchQuery))
+        {
+            filteredServiceSections = serviceSections;
+        }
+        else
+        {
+            filteredServiceSections = serviceSections.Select(section => new ServiceSection
+            {
+                Name = section.Name,
+                Icon = section.Icon,
+                Type = section.Type,
+                AddButtonText = section.AddButtonText,
+                Resources = section.Resources.Where(resource =>
+                    resource.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                    resource.Type.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                    resource.Details.Any(detail => detail.Contains(searchQuery, StringComparison.OrdinalIgnoreCase))
+                ).ToList()
+            }).Where(section => section.Resources.Any()).ToList();
+        }
+        StateHasChanged();
     }
 
     private void InitializeServiceSections()
@@ -441,9 +471,9 @@
             var status = "Running";
             var statusClass = "running";
 
-            if (showRuntimeField && !string.IsNullOrEmpty(newResource.Runtime))
+            if (showRuntimeField && !string.IsNullOrEmpty(newResource.TierOrRuntime))
             {
-                details.Add(newResource.Runtime);
+                details.Add(newResource.TierOrRuntime);
             }
 
             switch (currentServiceType)
@@ -534,6 +564,6 @@
         public string Name { get; set; } = "";
         public string ResourceGroup { get; set; } = "";
         public string Location { get; set; } = "";
-        public string Runtime { get; set; } = ".NET 6";
+        public string TierOrRuntime { get; set; } = ".NET 6";
     }
 }

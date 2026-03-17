@@ -141,6 +141,8 @@ public class ConfigurationService
             "api management" => new List<string> { "Service Name", "Type", "Resource Group", "Location", "Tier", "Dev Portal", "Status", "Actions" },
             "logic apps" => new List<string> { "Service Name", "Type", "Resource Group", "Location", "Environment", "Status", "Actions" },
             "azure functions" => new List<string> { "Service Name", "Type", "Resource Group", "Location", "Runtime", "Status", "Actions" },
+            "databricks" => new List<string> { "Service Name", "Type", "Resource Group", "Location", "Tier", "Status", "Actions" },
+            "azure databricks" => new List<string> { "Service Name", "Type", "Resource Group", "Location", "Tier", "Status", "Actions" },
             _ => new List<string> { "Service Name", "Type", "Resource Group", "Location", "Tier", "Status", "Actions" }
         };
     }
@@ -185,6 +187,8 @@ public class ConfigurationService
             "resource groups" => "📁",
             "data factory" => "🏭",
             "cognitive search" => "🔍",
+            "databricks" => "📊",
+            "azure databricks" => "📊",
             _ => "⚙️"
         };
     }
@@ -339,12 +343,6 @@ public class ConfigurationService
                 return "#";
             }
             
-            if (string.IsNullOrWhiteSpace(resource.ResourceGroup))
-            {
-                Console.WriteLine($"[ERROR] Resource group is null or empty");
-                return "#";
-            }
-            
             if (string.IsNullOrWhiteSpace(sectionName))
             {
                 Console.WriteLine($"[ERROR] Section name is null or empty");
@@ -354,6 +352,21 @@ public class ConfigurationService
             // Get resource type mapping
             var sectionLower = sectionName.ToLower();
             Console.WriteLine($"  - Section Name (lowercase): '{sectionLower}'");
+            
+            // Special case for Databricks - use ExtraColumn as direct URL if it starts with http
+            if ((sectionLower == "databricks" || sectionLower == "azure databricks") && 
+                !string.IsNullOrEmpty(resource.ExtraColumn) && 
+                resource.ExtraColumn.StartsWith("http"))
+            {
+                Console.WriteLine($"  - Using direct Databricks URL from ExtraColumn: '{resource.ExtraColumn}'");
+                return resource.ExtraColumn;
+            }
+            
+            if (string.IsNullOrWhiteSpace(resource.ResourceGroup))
+            {
+                Console.WriteLine($"[ERROR] Resource group is null or empty");
+                return "#";
+            }
             
             var resourceType = sectionLower switch
             {
@@ -372,6 +385,8 @@ public class ConfigurationService
                 "resource group" => "Microsoft.Resources/resourceGroups",
                 "data factory v2" => "Microsoft.DataFactory/factories",
                 "search service" => "Microsoft.Search/searchServices",
+                "databricks" => "Microsoft.Databricks/workspaces",
+                "azure databricks" => "Microsoft.Databricks/workspaces",
                 _ => "Microsoft.Resources/resourceGroups"
             };
             

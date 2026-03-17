@@ -8,15 +8,12 @@
 <PageTitle>My Frequent Azure Services - Table View</PageTitle>
 
 <div class="container">
-    <div class="back-nav">
-        <a href="azure-services" class="back-btn">← Back to All Services</a>
-        <a href="my-frequent-services" class="back-btn" style="margin-left: 10px;">📋 List View</a>
+    <div class="single-line-header">
+        <a href="azure-services" class="back-btn">← Back To All Services</a>
+        <a href="my-frequent-services" class="back-btn">📋 List View</a>
+        <h1 class="inline-title">My Frequent Azure Services - Table View</h1>
+        <input type="text" @bind="searchQuery" @oninput="OnSearchInput" placeholder="Search" class="search-input" />
     </div>
-
-    <header>
-        <h1>My Frequent Azure Services - Table View</h1>
-        <p class="subtitle">Quick access to your most used Azure resources in table format</p>
-    </header>
 
         @if (isLoading)
         {
@@ -28,7 +25,7 @@
         }
         else
         {
-            @foreach (var serviceSection in serviceSections)
+            @foreach (var serviceSection in filteredServiceSections)
             {
                 <div class="service-section">
                     <div class="section-header-with-toggle">
@@ -102,8 +99,10 @@
 
 @code {
     private List<ServiceTableSection> serviceSections = new();
+    private List<ServiceTableSection> filteredServiceSections = new();
     private bool isLoading = true;
     private string errorMessage = "";
+    private string searchQuery = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -121,6 +120,7 @@
             {
                 section.IsExpanded = true;
             }
+            filteredServiceSections = serviceSections;
         }
         catch (Exception ex)
         {
@@ -142,6 +142,39 @@
             section.IsExpanded = !section.IsExpanded;
             StateHasChanged();
         }
+    }
+
+    private void OnSearchInput(ChangeEventArgs e)
+    {
+        searchQuery = e.Value?.ToString() ?? string.Empty;
+        FilterServices();
+    }
+
+    private void FilterServices()
+    {
+        if (string.IsNullOrEmpty(searchQuery))
+        {
+            filteredServiceSections = serviceSections;
+        }
+        else
+        {
+            filteredServiceSections = serviceSections.Select(section => new ServiceTableSection
+            {
+                Name = section.Name,
+                Icon = section.Icon,
+                Type = section.Type,
+                IsExpanded = section.IsExpanded,
+                TableHeaders = section.TableHeaders,
+                Resources = section.Resources.Where(resource =>
+                    resource.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                    resource.Type.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                    resource.ResourceGroup.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                    resource.Location.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                    (!string.IsNullOrEmpty(resource.TierOrRuntime) && resource.TierOrRuntime.Contains(searchQuery, StringComparison.OrdinalIgnoreCase))
+                ).ToList()
+            }).Where(section => section.Resources.Any()).ToList();
+        }
+        StateHasChanged();
     }
 
     private async Task NavigateToResource(string? url)

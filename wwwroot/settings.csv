@@ -18,6 +18,8 @@ Azure Functions,apim-services-func-prod,Function App,global-api-management-prod-
 Azure Functions,asr-finder-dev,Function App,AMER-TEST-ASR-FINDER-rg,Central US,Python 3.9,,Running,dev
 Azure Functions,asr-finder-integration-qa,Function App,AMER-TEST-ASR-FINDER-rg,Central US,Python 3.9,,Running,test
 Azure Functions,asr-finder-integration-uat,Function App,AMER-TEST-ASR-FINDER-rg,Central US,Python 3.9,,Running,uat
+Databricks,kusnc-gbl-test-eac-dbricks01,Databricks,,East US,Premium,https://adb-6132709353148755.15.azuredatabricks.net/?o=6132709353148755,Running,test
+Databricks,kusnc-gbl-prod-eac-dbricks01,Databricks,,East US,Premium,https://adb-6002889854638527.7.azuredatabricks.net/?o=6002889854638527,Running,prod
 Azure Functions,asr-finder-integration-prod,Function App,AMER-PROD-ASR-FINDER-rg,Central US,Python 3.9,,Running,prod
 Azure Functions,commercetools-product-integrations-preprod,Function App,GLOBAL-COMMERCETOOLS-PREPROD-rg,Central US,Python 3.9,,Running,uat
 Azure Functions,commercetools-product-integrations-qa,Function App,GLOBAL-COMMERCETOOLS-TEST-rg,Central US,Python 3.9,,Running,test
