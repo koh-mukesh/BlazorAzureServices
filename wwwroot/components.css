@@ -1003,6 +1003,33 @@
     color: white;
 }
 
+/* Refresh Button */
+.refresh-btn {
+    display: inline-block;
+    padding: 8px 16px;
+    background: #28a745;
+    color: white;
+    border: none;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    margin-left: 8px;
+}
+
+.refresh-btn:hover:not(:disabled) {
+    background: #218838;
+    text-decoration: none;
+    color: white;
+}
+
+.refresh-btn:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
 /* Page Headers */
 header {
     text-align: center;

@@ -12,6 +12,16 @@
         <a href="azure-services" class="back-btn">← Back To All Services</a>
         <a href="my-frequent-services" class="back-btn">📋 List View</a>
         <h1 class="inline-title">My Frequent Azure Services - Table View</h1>
+        <button class="refresh-btn" @onclick="RefreshData" disabled="@isLoading" title="Refresh data from CSV">
+            @if (isLoading)
+            {
+                <span>🔄 Loading...</span>
+            }
+            else
+            {
+                <span>🔄 Refresh</span>
+            }
+        </button>
         <input type="text" @bind="searchQuery" @oninput="OnSearchInput" placeholder="Search" class="search-input" />
     </div>
 
@@ -121,6 +131,7 @@
                 section.IsExpanded = true;
             }
             filteredServiceSections = serviceSections;
+            errorMessage = ""; // Clear any previous error message
         }
         catch (Exception ex)
         {
@@ -132,6 +143,11 @@
             isLoading = false;
             StateHasChanged();
         }
+    }
+
+    private async Task RefreshData()
+    {
+        await LoadServiceSections();
     }
 
     private void ToggleSection(string sectionType)

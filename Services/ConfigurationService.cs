@@ -23,7 +23,9 @@ public class ConfigurationService
         {
             Console.WriteLine("=== [DEBUG] LoadServiceSectionsAsync STARTED ===");
             Console.WriteLine("Loading configuration from settings.csv...");
-            var configContent = await _httpClient.GetStringAsync("settings.csv");
+            // Add cache-busting parameter to prevent browser caching
+            var cacheBuster = DateTimeOffset.UtcNow.Ticks;
+            var configContent = await _httpClient.GetStringAsync($"settings.csv?v={cacheBuster}");
             Console.WriteLine($"Configuration loaded, content length: {configContent.Length}");
             
             // Show first few lines of CSV content for debugging
