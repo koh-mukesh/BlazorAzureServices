@@ -45,6 +45,11 @@ App Insights,ecomm-salesforce-middleware,App Insights,AMER-ECOMM-SALESFORCE-SERV
 App Insights,ecomm-salesforce-middleware-test,App Insights,AMER-ECOMM-SALESFORCE-SERVICE-Test-rg,Central US,App Insights,,Online,test
 Cosmos DB,az-amer-dev-asrfinder-cosmos,Cosmos DB,AMER-TEST-ASR-FINDER-rg,Central US,SQL API,,Online,dev
 Cosmos DB,az-amer-uat-asrfinder-cosmos,Cosmos DB,AMER-TEST-ASR-FINDER-rg,Central US,SQL API,,Online,uat
+Cosmos DB,az-amer-prod-asrfinder-cosmos,Cosmos DB,AMER-PROD-ASR-FINDER-rg,Central US,SQL API,,Online,prod
+Cosmos DB,apim-cosmos-dev,Cosmos DB,GLOBAL-API-Management-DEV-rg,Central US,SQL API,,Online,dev
+Cosmos DB,apim-cosmos-test,Cosmos DB,GLOBAL-API-Management-TEST-rg,Central US,SQL API,,Online,test
+Cosmos DB,apim-cosmos-uat,Cosmos DB,GLOBAL-API-Management-PRE-PROD-rg,Central US,SQL API,,Online,prod
+Cosmos DB,apim-cosmos-prod,Cosmos DB,GLOBAL-API-Management-PROD-rg,Central US,SQL API,,Online,prod
 App Service,az-amer-uat-kohlersearch-app,App Service,az-amer-uat-kohlersrch-rg,Central US,Linux,,Running,uat
 App Service,kohler-azuresearch-prod,App Service,az-amer-prod-kohlersrch-rg,Central US,Linux,,Running,prod
 Storage Account,azdevgenkohlerindiast,Storage Account,az-apac-dev-ctindia-rg,centralindia,,,Active,dev
