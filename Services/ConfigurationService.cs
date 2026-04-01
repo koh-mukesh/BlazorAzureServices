@@ -1,20 +1,31 @@
 using System.Text.Json;
+using BlazorAzureServices.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace BlazorAzureServices.Services;
 
 public class ConfigurationService
 {
     private readonly HttpClient _httpClient;
-    
-    // Azure subscription configuration
-    // TODO: Move these to appsettings.json or environment variables for better configuration management
-    private const string DefaultSubscriptionId = "35166c0d-3c12-4f4c-8638-79d7248ae93f";
-    private const string DataFactorySubscriptionId = "e4e37c2d-09d5-4584-9b5b-e4d389d8cd1b"; // TODO: Update this with actual Data Factory subscription ID
-    private const string AzureTenantDomain = "mykohler.onmicrosoft.com";
+    private readonly AzureConfiguration _azureConfig = null!;
 
-    public ConfigurationService(HttpClient httpClient)
+    public ConfigurationService(HttpClient httpClient, IOptions<AzureConfiguration> azureConfig)
     {
         _httpClient = httpClient;
+        _azureConfig = azureConfig.Value;
+        
+        // Debug configuration loading
+        Console.WriteLine($"[DEBUG] ConfigurationService initialized");
+        Console.WriteLine($"  - TenantDomain: '{_azureConfig?.TenantDomain ?? "NULL"}'");
+        Console.WriteLine($"  - Subscriptions Count: {_azureConfig?.Subscriptions?.Count ?? 0}");
+        
+        if (_azureConfig?.Subscriptions != null)
+        {
+            foreach (var sub in _azureConfig.Subscriptions)
+            {
+                Console.WriteLine($"    - {sub.Key}: {sub.Value?.SubscriptionId ?? "NULL"} ({sub.Value?.Name ?? "NULL"})");
+            }
+        }
     }
 
     public async Task<List<ServiceTableSection>> LoadServiceSectionsAsync()
@@ -406,7 +417,7 @@ public class ConfigurationService
             Console.WriteLine($"  - Subscription ID: '{subscriptionId}'");
 
             // Generate the Azure portal URL
-            var portalUrl = $"https://portal.azure.com/#@{AzureTenantDomain}/resource/subscriptions/{subscriptionId}/resourceGroups/{cleanResourceGroup}/providers/{resourceType}/{cleanResourceName}/overview";
+            var portalUrl = $"https://portal.azure.com/#@{_azureConfig.TenantDomain}/resource/subscriptions/{subscriptionId}/resourceGroups/{cleanResourceGroup}/providers/{resourceType}/{cleanResourceName}/overview";
             
             Console.WriteLine($"  - Generated URL: '{portalUrl}'");
             Console.WriteLine($"[DEBUG] GenerateAzurePortalUrl completed successfully");
@@ -425,25 +436,46 @@ public class ConfigurationService
     {
         Console.WriteLine($"[DEBUG] GetSubscriptionIdForService called for section: '{sectionName}', resource group: '{resourceGroup}'");
         
-        // Check if this is a Data Factory service
-        if (sectionName.Contains("data factory"))
+        if (_azureConfig == null)
         {
-            Console.WriteLine($"[DEBUG] Using Data Factory subscription ID: {DataFactorySubscriptionId}");
-            return DataFactorySubscriptionId;
+            Console.WriteLine($"[ERROR] Configuration is null, returning empty string");
+            return "";
         }
+
+        // Extract resource name from resource group (remove -rg suffix if present)
+        var resourceName = resourceGroup.EndsWith("-rg") 
+            ? resourceGroup.Substring(0, resourceGroup.Length - 3)
+            : resourceGroup;
+
+        Console.WriteLine($"[DEBUG] Extracted resource name: '{resourceName}'");
+        var availableOverrides = _azureConfig.SpecificResourceOverrides?.Keys?.ToArray() ?? Array.Empty<string>();
+        Console.WriteLine($"[DEBUG] Available overrides: [{string.Join(", ", availableOverrides)}]");
         
-        // Check by resource group patterns for Data Factory
-        if (resourceGroup.ToLower().Contains("hcm") || 
-            resourceGroup.ToLower().Contains("datafactory") || 
-            resourceGroup.ToLower().Contains("adf"))
+        // STEP 1: Check specific resource overrides first (HIGHEST PRIORITY)
+        if (_azureConfig.SpecificResourceOverrides?.ContainsKey(resourceName) == true)
         {
-            Console.WriteLine($"[DEBUG] Detected Data Factory resource group pattern, using Data Factory subscription ID: {DataFactorySubscriptionId}");
-            return DataFactorySubscriptionId;
+            var overrideSubscriptionId = _azureConfig.SpecificResourceOverrides[resourceName];
+            Console.WriteLine($"[DEBUG] ✅ SPECIFIC OVERRIDE FOUND! Resource '{resourceName}' → using override subscription: {overrideSubscriptionId}");
+            return overrideSubscriptionId;
         }
-        
-        // For all other services, use default subscription
-        Console.WriteLine($"[DEBUG] Using default subscription ID: {DefaultSubscriptionId}");
-        return DefaultSubscriptionId;
+        else
+        {
+            Console.WriteLine($"[DEBUG] No specific override found for resource name: '{resourceName}'");
+        }
+
+        // STEP 2: Default to CIT-INF subscription for everything else
+        var defaultSubscriptionId = GetSubscriptionId("Default");
+        Console.WriteLine($"[DEBUG] No specific override found, using Default subscription: {defaultSubscriptionId}");
+        return defaultSubscriptionId ?? "";
+    }
+    
+    private string? GetSubscriptionId(string subscriptionKey)
+    {
+        if (_azureConfig.Subscriptions.TryGetValue(subscriptionKey, out var subscription))
+        {
+            return subscription.SubscriptionId;
+        }
+        return null;
     }
 
     private List<ServiceTableSection> GetDefaultServiceSections()
@@ -463,6 +495,43 @@ public class ConfigurationService
                 Resources = new List<TableResourceItem>()
             }
         };
+    }
+
+    /// <summary>
+    /// Get all configured subscriptions
+    /// </summary>
+    public Dictionary<string, SubscriptionConfiguration> GetAllSubscriptions()
+    {
+        return _azureConfig.Subscriptions;
+    }
+
+    /// <summary>
+    /// Get subscription details by key
+    /// </summary>
+    public SubscriptionConfiguration? GetSubscriptionDetails(string subscriptionKey)
+    {
+        return _azureConfig.Subscriptions.TryGetValue(subscriptionKey, out var subscription) 
+            ? subscription 
+            : null;
+    }
+
+    /// <summary>
+    /// Get the subscription key and details for a given service and resource group
+    /// </summary>
+    public (string Key, SubscriptionConfiguration? Details) GetSubscriptionForService(string sectionName, string resourceGroup)
+    {
+        var subscriptionId = GetSubscriptionIdForService(sectionName, resourceGroup);
+        
+        // Find the subscription key by ID
+        foreach (var kvp in _azureConfig.Subscriptions)
+        {
+            if (kvp.Value.SubscriptionId == subscriptionId)
+            {
+                return (kvp.Key, kvp.Value);
+            }
+        }
+        
+        return ("Unknown", null);
     }
 }
 

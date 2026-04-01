@@ -20,6 +20,8 @@
 
   <Target Name="CopySettingsFile" BeforeTargets="Build">
     <Copy SourceFiles="settings.csv" DestinationFiles="wwwroot/settings.csv" />
+    <Copy SourceFiles="appsettings.json" DestinationFiles="wwwroot/appsettings.json" />
+    <Copy SourceFiles="appsettings.Development.json" DestinationFiles="wwwroot/appsettings.Development.json" />
   </Target>
 
 </Project>

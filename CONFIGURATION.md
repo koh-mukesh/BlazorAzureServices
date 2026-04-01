@@ -2,9 +2,82 @@
 
 ## Overview
 
-The Azure Services Dashboard now supports configurable service definitions through the `settings.csv` file. This allows you to update service details without modifying the source code.
+The Azure Services Dashboard supports configurable service definitions through the `settings.csv` file and Azure subscription configuration through `appsettings.json`. This allows you to update service details and Azure subscriptions without modifying the source code.
 
-## Configuration File Format
+## Azure Subscription Configuration
+
+### Setup
+Azure subscription settings are configured in `appsettings.json` under the `Azure` section:
+
+```json
+{
+  "Azure": {
+    "TenantDomain": "yourcompany.onmicrosoft.com",
+    "Subscriptions": {
+      "Default": {
+        "SubscriptionId": "35166c0d-3c12-4f4c-8638-79d7248ae93f",
+        "Name": "CIT-INF",
+        "Description": "Corporate IT Infrastructure - Development and testing"
+      },
+      "Production": {
+        "SubscriptionId": "e884a250-7177-4a12-9397-4032aa0f8070",
+        "Name": "DefaultWL-Prod-AMER",
+        "Description": "Production workloads in Americas region"
+      },
+      "NonProduction": {
+        "SubscriptionId": "e4e37c2d-09d5-4584-9b5b-e4d389d8cd1b",
+        "Name": "DefaultWL-NonProd-AMER",
+        "Description": "Non-production workloads in Americas region"
+      },
+      "Communications": {
+        "SubscriptionId": "f730bd52-8a69-47b8-9b73-9a36eafa7293",
+        "Name": "Corporate Communications - 1",
+        "Description": "Corporate communications and marketing services"
+      },
+      "IoT": {
+        "SubscriptionId": "d8ed5f39-3878-4ac5-887b-643deb70777f",
+        "Name": "Global IoT",
+        "Description": "Internet of Things and connected device services"
+      },
+      "Dynamics": {
+        "SubscriptionId": "21facf0c-3f51-4adc-ac4d-f37eff234c2a",
+        "Name": "KCIC-NonProd",
+        "Description": "Kohler Customer Intelligence Center - Non-production"
+      }
+    },
+    "ServiceMapping": {
+      "Production": ["data factory", "adf", "prod"],
+      "NonProduction": ["test", "dev", "staging", "uat"],
+      "Communications": ["communications", "marketing", "web", "cms"],
+      "IoT": ["iot", "device", "sensor", "telemetry", "edge"],
+      "Dynamics": ["dynamics", "crm", "erp", "kcic", "customer"],
+      "Default": ["*"]
+    },
+    "ResourceGroupMapping": {
+      "Production": ["prod", "production", "prd", "hcm", "datafactory", "adf", "amer", "sdmp"],
+      "NonProduction": ["dev", "test", "staging", "uat", "nonprod", "sandbox"],
+      "Communications": ["comm", "marketing", "web", "cms", "portal"],
+      "IoT": ["iot", "device", "sensor", "telemetry", "edge", "connected"],
+      "Dynamics": ["dynamics", "crm", "erp", "kcic", "customer", "d365"],
+      "Default": ["*"]
+    }
+  }
+}
+```
+
+### Subscription Routing
+The system automatically routes services to subscriptions based on:
+1. **Service Type Patterns**: Matches service names against configured patterns
+2. **Resource Group Patterns**: Matches resource group names against configured patterns
+3. **Fallback**: Uses the default subscription if no patterns match
+
+### Management Interface
+Access the subscription management interface at `/subscriptions` to:
+- View all configured subscriptions
+- Test subscription routing for specific services
+- Understand service and resource group mapping rules
+
+## Service Configuration (CSV)
 
 The `settings.csv` file follows a standard CSV (Comma-Separated Values) format:
 
@@ -84,12 +157,17 @@ If the configuration file fails to load:
 
 ## Azure Portal URLs
 
-The system generates Azure Portal URLs using a standard pattern:
+The system automatically generates Azure Portal URLs using the configured subscriptions:
 ```
-https://portal.azure.com/#resource/subscriptions/{subscription}/resourceGroups/{resourceGroup}/providers/{resourceType}/{serviceName}/overview
+https://portal.azure.com/#@{tenantDomain}/resource/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/{resourceType}/{serviceName}/overview
 ```
 
-Note: You may need to update the subscription ID in the `ConfigurationService.cs` file for correct portal links.
+The subscription ID is automatically determined based on:
+- Service type matching (e.g., Data Factory services → DataFactory subscription)
+- Resource group pattern matching (e.g., "hcm-*" → DataFactory subscription)
+- Fallback to default subscription
+
+No manual subscription ID updates are needed in the code.
 
 ## Best Practices
 

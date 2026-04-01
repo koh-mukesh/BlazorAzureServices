@@ -1,0 +1,392 @@
+@page "/diagnostics"
+@using BlazorAzureServices.Services
+@using BlazorAzureServices.Configuration
+@inject ConfigurationService ConfigService
+
+<PageTitle>Configuration Diagnostics</PageTitle>
+
+<div class="diagnostic-page">
+    <h1>🔍 Configuration Diagnostics</h1>
+    
+    <div class="section">
+        <h2>Configuration Test Results</h2>
+        
+        <div class="test-result @resultClass">
+            <h3>@resultTitle</h3>
+            <p>@resultMessage</p>
+            
+            @if (configDetails.Any())
+            {
+                <h4>Configuration Details:</h4>
+                <ul>
+                    @foreach (var detail in configDetails)
+                    {
+                        <li>@detail</li>
+                    }
+                </ul>
+            }
+            
+            @if (testUrls.Any())
+            {
+                <h4>Sample Generated URLs:</h4>
+                <ul>
+                    @foreach (var url in testUrls)
+                    {
+                        <li><a href="@url.Url" target="_blank">@url.Description</a></li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>Test URL Generation</h2>
+        <div class="test-form">
+            <div class="form-group">
+                <label>Service Type:</label>
+                <input @bind="testService" placeholder="data factory" />
+            </div>
+            <div class="form-group">
+                <label>Resource Group:</label>
+                <input @bind="testResourceGroup" placeholder="az-amer-prod-sdmp-rg" />
+            </div>
+            <div class="form-group">
+                <label>Resource Name:</label>
+                <input @bind="testResourceName" placeholder="az-amer-prod-sdmp-adf" />
+            </div>
+            <button @onclick="TestUrlGeneration" class="test-btn">Test URL Generation</button>
+            <button @onclick="TestADFRouting" class="test-btn" style="margin-left: 10px; background-color: #dc3545;">🔴 Test ADF Routing</button>
+            
+            @if (!string.IsNullOrEmpty(testResult))
+            {
+                <div class="test-output">
+                    <h4>Generated URL:</h4>
+                    <p><a href="@testResult" target="_blank">@testResult</a></p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .diagnostic-page { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .section { background: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .test-result { padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+    .test-result.success { background: #d4edda; border-left: 4px solid #28a745; }
+    .test-result.warning { background: #fff3cd; border-left: 4px solid #ffc107; }
+    .test-result.error { background: #f8d7da; border-left: 4px solid #dc3545; }
+    .test-form { background: #f8f9fa; padding: 15px; border-radius: 8px; }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+    .form-group input { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; }
+    .test-btn { background: #007acc; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+    .test-btn:hover { background: #005a9e; }
+    .test-output { margin-top: 15px; padding: 15px; background: white; border-radius: 4px; }
+    li { margin-bottom: 5px; }
+</style>
+
+@code {
+    private string resultClass = "";
+    private string resultTitle = "";
+    private string resultMessage = "";
+    private List<string> configDetails = new();
+    private List<(string Description, string Url)> testUrls = new();
+    
+    private string testService = "";
+    private string testResourceGroup = "";
+    private string testResourceName = "";
+    private string testResult = "";
+    
+    protected override void OnInitialized()
+    {
+        DiagnoseConfiguration();
+    }
+    
+    private void DiagnoseConfiguration()
+    {
+        configDetails.Clear();
+        testUrls.Clear();
+        
+        try
+        {
+            var subscriptions = ConfigService.GetAllSubscriptions();
+            
+            if (subscriptions == null || !subscriptions.Any())
+            {
+                resultClass = "error";
+                resultTitle = "[ERROR] Configuration Error";
+                resultMessage = "No subscriptions found. Configuration is not loaded correctly.";
+                return;
+            }
+            
+            configDetails.Add($"Found {subscriptions.Count} subscriptions");
+            
+            var hasDefault = subscriptions.ContainsKey("Default");
+            var hasProduction = subscriptions.ContainsKey("Production");
+            
+            configDetails.Add($"Has Default subscription: {hasDefault}");
+            configDetails.Add($"Has Production subscription: {hasProduction}");
+            
+            foreach (var sub in subscriptions)
+            {
+                var isValid = !string.IsNullOrWhiteSpace(sub.Value.SubscriptionId);
+                configDetails.Add($"{sub.Key}: {(isValid ? "[OK]" : "[ERROR]")} {sub.Value.Name} ({sub.Value.SubscriptionId})");
+            }
+            
+            // Test URL generation for common scenarios
+            TestUrlGeneration("data factory", "az-amer-prod-sdmp-rg", "az-amer-prod-sdmp-adf");
+            TestUrlGeneration("api management", "global-api-management-dev-rg", "api-kohler-dev2");
+            
+            // SPECIFIC TEST for the failing ADF case
+            TestSpecificRoutingDebug();
+            
+            if (testUrls.Any(u => u.Url == "#"))
+            {
+                resultClass = "error";
+                resultTitle = "[ERROR] URL Generation Failed";
+                resultMessage = "Some URLs are being generated as '#' which indicates a configuration problem.";
+            }
+            else if (!hasDefault)
+            {
+                resultClass = "warning";
+                resultTitle = "⚠️ Missing Default Subscription";
+                resultMessage = "Configuration is mostly correct, but 'Default' subscription is missing.";
+            }
+            else
+            {
+                resultClass = "success";
+                resultTitle = "[SUCCESS] Configuration Looks Good";
+                resultMessage = "All subscriptions loaded correctly and URL generation is working.";
+            }
+        }
+        catch (Exception ex)
+        {
+            resultClass = "error";
+            resultTitle = "❌ Configuration Error";
+            resultMessage = $"Error testing configuration: {ex.Message}";
+            configDetails.Add($"Exception: {ex.GetType().Name}");
+            configDetails.Add($"Stack trace: {ex.StackTrace}");
+        }
+    }
+    
+    private void TestUrlGeneration(string service, string resourceGroup, string resourceName)
+    {
+        try
+        {
+            // Create a mock resource item
+            var mockResource = new TableResourceItem
+            {
+                Name = resourceName,
+                ResourceGroup = resourceGroup,
+                Type = service
+            };
+            
+            // Use reflection to call the private GenerateAzurePortalUrl method
+            var method = typeof(ConfigurationService).GetMethod("GenerateAzurePortalUrl", 
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            
+            if (method != null)
+            {
+                var url = method.Invoke(ConfigService, new object[] { mockResource, service }) as string ?? "#";
+                testUrls.Add(($"{service} - {resourceName}", url));
+            }
+            else
+            {
+                testUrls.Add(($"{service} - {resourceName}", "Method not found"));
+            }
+        }
+        catch (Exception ex)
+        {
+            testUrls.Add(($"{service} - {resourceName}", $"Error: {ex.Message}"));
+        }
+    }
+    
+    private void TestUrlGeneration()
+    {
+        if (string.IsNullOrWhiteSpace(testService) || string.IsNullOrWhiteSpace(testResourceGroup) || string.IsNullOrWhiteSpace(testResourceName))
+        {
+            testResult = "Please fill in all fields";
+            return;
+        }
+        
+        try
+        {
+            var mockResource = new TableResourceItem
+            {
+                Name = testResourceName.Trim(),
+                ResourceGroup = testResourceGroup.Trim(),
+                Type = testService.Trim()
+            };
+            
+            var method = typeof(ConfigurationService).GetMethod("GenerateAzurePortalUrl", 
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            
+            if (method != null)
+            {
+                testResult = method.Invoke(ConfigService, new object[] { mockResource, testService.Trim() }) as string ?? "#";
+            }
+            else
+            {
+                testResult = "Method not found";
+            }
+        }
+        catch (Exception ex)
+        {
+            testResult = $"Error: {ex.Message}";
+        }
+    }
+    
+    private void TestADFRouting()
+    {
+        try 
+        {
+            var (key, details) = ConfigService.GetSubscriptionForService("data factory v2", "az-amer-prod-sdmp-rg");
+            
+            if (details != null) 
+            {
+                var isCorrect = details.SubscriptionId == "e884a250-7177-4a12-9397-4032aa0f8070";
+                testResult = $"ADF Routing: {(isCorrect ? "[CORRECT]" : "[WRONG]")}\n" +
+                           $"Mapped to: {key} ({details.Name})\n" +
+                           $"Subscription: {details.SubscriptionId}\n" +
+                           $"Expected: e884a250-7177-4a12-9397-4032aa0f8070";
+                           
+                if (!isCorrect)
+                {
+                    if (details.SubscriptionId == "e4e37c2d-09d5-4584-9b5b-e4d389d8cd1b")
+                        testResult += "\n[ERROR] Routing to NonProduction instead of Production";
+                    else if (details.SubscriptionId == "35166c0d-3c12-4f4c-8638-79d7248ae93f")  
+                        testResult += "\n[ERROR] Routing to Default instead of Production";
+                    else
+                        testResult += "\n[ERROR] Routing to unknown subscription";
+                }
+            }
+            else 
+            {
+                testResult = "[ERROR] No subscription found for ADF routing test";
+            }
+        }
+        catch (Exception ex)
+        {
+            testResult = $"[ERROR] ADF Routing Test Error: {ex.Message}";
+        }
+    }
+    
+    private void TestSpecificRoutingDebug()
+    {
+        try
+        {
+            // Test the specific ADF case that's failing
+            var (key, details) = ConfigService.GetSubscriptionForService("data factory v2", "az-amer-prod-sdmp-rg");
+            
+            if (details != null)
+            {
+                var subscriptionMatch = details.SubscriptionId == "e884a250-7177-4a12-9397-4032aa0f8070" ? "[CORRECT]" : "[WRONG]";
+                configDetails.Add($"ADF Routing Test: {subscriptionMatch}");
+                configDetails.Add($"  → Mapped to: {key} ({details.Name})");
+                configDetails.Add($"  → Subscription ID: {details.SubscriptionId}");
+                configDetails.Add($"  → Expected: e884a250-7177-4a12-9397-4032aa0f8070 (Production)");
+                
+                // Add detailed mapping information
+                if (details.SubscriptionId == "e4e37c2d-09d5-4584-9b5b-e4d389d8cd1b")
+                    configDetails.Add($"  → ERROR: Routing to NonProduction instead of Production");
+                else if (details.SubscriptionId == "35166c0d-3c12-4f4c-8638-79d7248ae93f")
+                    configDetails.Add($"  → ERROR: Routing to Default instead of Production");
+                else if (details.SubscriptionId != "e884a250-7177-4a12-9397-4032aa0f8070")
+                    configDetails.Add($"  → ERROR: Routing to unknown subscription");
+                
+                if (details.SubscriptionId != "e884a250-7177-4a12-9397-4032aa0f8070")
+                {
+                    configDetails.Add($"  → ⚠️ This explains the 401 error - wrong subscription!");
+                    
+                    // Test individual pattern matches manually
+                    var serviceTest1 = "data factory v2".Contains("data factory");
+                    var serviceTest2 = "data factory v2".Contains("data factory v2");
+                    var serviceTest3 = "data factory v2".Contains("adf");
+                    var serviceTest4 = "data factory v2".Contains("prod");
+                    
+                    configDetails.Add($"  → Service Pattern Tests:");
+                    configDetails.Add($"    • 'data factory v2' contains 'data factory': {serviceTest1}");
+                    configDetails.Add($"    • 'data factory v2' contains 'data factory v2': {serviceTest2}");
+                    configDetails.Add($"    • 'data factory v2' contains 'adf': {serviceTest3}");
+                    configDetails.Add($"    • 'data factory v2' contains 'prod': {serviceTest4}");
+                    
+                    var rgTest1 = "az-amer-prod-sdmp-rg".Contains("prod");
+                    var rgTest2 = "az-amer-prod-sdmp-rg".Contains("amer");
+                    var rgTest3 = "az-amer-prod-sdmp-rg".Contains("sdmp");
+                    var rgTest4 = "az-amer-prod-sdmp-rg".Contains("adf");
+                    
+                    configDetails.Add($"  → Resource Group Pattern Tests:");
+                    configDetails.Add($"    • 'az-amer-prod-sdmp-rg' contains 'prod': {rgTest1}");
+                    configDetails.Add($"    • 'az-amer-prod-sdmp-rg' contains 'amer': {rgTest2}");
+                    configDetails.Add($"    • 'az-amer-prod-sdmp-rg' contains 'sdmp': {rgTest3}");
+                    configDetails.Add($"    • 'az-amer-prod-sdmp-rg' contains 'adf': {rgTest4}");
+                }
+            }
+            else
+            {
+                configDetails.Add("❌ ADF Routing Test: No subscription found for 'data factory v2' in 'az-amer-prod-sdmp-rg'");
+            }
+        }
+        catch (Exception ex)
+        {
+            configDetails.Add($"❌ ADF Routing Test Error: {ex.Message}");
+        }
+    }
+}
+        {
+            // Test the specific ADF case that's failing  
+            var (key, details) = ConfigService.GetSubscriptionForService("data factory v2", "az-amer-prod-sdmp-rg");
+            
+            if (details != null)
+            {
+                var subscriptionMatch = details.SubscriptionId == "e884a250-7177-4a12-9397-4032aa0f8070" ? "✅ CORRECT" : "❌ WRONG";
+                configDetails.Add($"ADF Routing Test: {subscriptionMatch}");
+                configDetails.Add($"  → Mapped to: {key} ({details.Name})");
+                configDetails.Add($"  → Subscription ID: {details.SubscriptionId}");
+                configDetails.Add($"  → Expected: e884a250-7177-4a12-9397-4032aa0f8070 (Production)");
+                configDetails.Add($"  → Actual: {details.SubscriptionId} ({(details.SubscriptionId == "e4e37c2d-09d5-4584-9b5b-e4d389d8cd1b" ? "NonProduction" : "Unknown")})");
+                
+                if (details.SubscriptionId != "e884a250-7177-4a12-9397-4032aa0f8070")
+                {
+                    configDetails.Add($"  → ⚠️ This explains the 401 error - wrong subscription!");
+                    // Add pattern matching test
+                    configDetails.Add($"  → Testing patterns:");
+                    var serviceTest = "data factory v2".Contains("data factory");
+                    var prodTest = "az-amer-prod-sdmp-rg".Contains("prod");  
+                    var amerTest = "az-amer-prod-sdmp-rg".Contains("amer");
+                    var sdmpTest = "az-amer-prod-sdmp-rg".Contains("sdmp");
+                    configDetails.Add($"    • Service should match data factory: {serviceTest}");
+                    configDetails.Add($"    • Resource should match prod: {prodTest}");
+                    configDetails.Add($"    • Resource should match amer: {amerTest}");
+                    configDetails.Add($"    • Resource should match sdmp: {sdmpTest}");
+                }
+                }
+            }
+            else
+            {
+                configDetails.Add("❌ ADF Routing Test: No subscription found for 'data factory v2' in 'az-amer-prod-sdmp-rg'");
+            }
+        }
+        catch (Exception ex)
+        {
+            configDetails.Add($"❌ ADF Routing Test Error: {ex.Message}");
+        }
+    }
+}
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            
+            if (method != null)
+            {
+                testResult = method.Invoke(ConfigService, new object[] { mockResource, testService.Trim() }) as string ?? "#";
+            }
+            else
+            {
+                testResult = "Error: Method not found";  
+            }
+        }
+        catch (Exception ex)
+        {
+            testResult = $"Error: {ex.Message}";
+        }
+    }
+}
